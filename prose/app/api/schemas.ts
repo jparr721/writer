@@ -5,6 +5,10 @@ export const documentIdParamsSchema = z.object({
 	id: z.uuid(),
 });
 
+export const folderIdParamsSchema = z.object({
+	id: z.uuid(),
+});
+
 export const createDocumentBodySchema = z.object({
 	title: z.string().trim().optional(),
 	content: z.string().optional(),
@@ -24,6 +28,7 @@ export const createWorkspaceBodySchema = z.object({
 });
 
 export type DocumentIdParams = z.infer<typeof documentIdParamsSchema>;
+export type FolderIdParams = z.infer<typeof folderIdParamsSchema>;
 export type CreateDocumentBody = z.infer<typeof createDocumentBodySchema>;
 export type UpdateDocumentBody = z.infer<typeof updateDocumentBodySchema>;
 export type WorkspaceIdParams = z.infer<typeof workspaceIdParamsSchema>;

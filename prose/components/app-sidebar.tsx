@@ -2,15 +2,20 @@
 
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Moon02Icon, Sun03Icon, Settings02Icon } from "@hugeicons/core-free-icons";
+import { FileZipIcon, Moon02Icon, Sun03Icon, Settings02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
 import FolderUploadDialog from "@/components/folder-upload-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuItem,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
+	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { DocumentSummary } from "@/hooks/use-documents";
@@ -154,6 +159,17 @@ export default function AppSidebar({
 		});
 	}, []);
 
+	const handleExportLibrary = useCallback(async () => {
+		const response = await fetch("/api/library/export");
+		const blob = await response.blob();
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "library.zip";
+		a.click();
+		URL.revokeObjectURL(url);
+	}, []);
+
 	const renderFolder = useCallback(
 		function renderFolder(node: FolderNode, depth = 0) {
 			const isOpen = openFolders.has(node.id);
@@ -238,21 +254,32 @@ export default function AppSidebar({
 									size="lg"
 									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 								>
-									<HugeiconsIcon
-										icon={mounted && resolvedTheme === "dark" ? Moon02Icon : Sun03Icon}
-										className="size-5"
-									/>
-									<span className="flex-1 text-left text-sm font-medium">
-										{mounted ? (theme === "system" ? "System" : theme === "dark" ? "Dark" : "Light") : "Theme"}
-									</span>
+									<HugeiconsIcon icon={Settings02Icon} className="size-5" />
+									<span className="flex-1 text-left text-sm font-medium">Settings</span>
 								</SidebarMenuButton>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent side="top" align="start" className="w-[--radix-dropdown-menu-trigger-width]">
-								<DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-									<DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-									<DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
-									<DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
-								</DropdownMenuRadioGroup>
+							<DropdownMenuContent side="top" align="start" className="w-56">
+								<DropdownMenuSub>
+									<DropdownMenuSubTrigger>
+										<HugeiconsIcon
+											icon={mounted && resolvedTheme === "dark" ? Moon02Icon : Sun03Icon}
+											className="size-4"
+										/>
+										Theme
+									</DropdownMenuSubTrigger>
+									<DropdownMenuSubContent>
+										<DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+											<DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+											<DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+											<DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
+										</DropdownMenuRadioGroup>
+									</DropdownMenuSubContent>
+								</DropdownMenuSub>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem onClick={handleExportLibrary}>
+									<HugeiconsIcon icon={FileZipIcon} className="size-4" />
+									Export as Zip
+								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</SidebarMenuItem>
