@@ -3,6 +3,8 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
 	Dialog,
 	DialogContent,
@@ -35,6 +37,7 @@ export default function FolderUploadDialog() {
 	const [files, setFiles] = useState<PendingFile[]>([]);
 	const [filter, setFilter] = useState("");
 	const [isUploading, setIsUploading] = useState(false);
+	const [ignoreDotFiles, setIgnoreDotFiles] = useState(true);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const invalidateDocuments = useInvalidateDocuments();
 	const invalidateLibrary = useInvalidateLibrary();
@@ -63,10 +66,24 @@ export default function FolderUploadDialog() {
 	}, []);
 
 	const filteredFiles = useMemo(() => {
-		if (!filter.trim()) return files;
-		const term = filter.trim().toLowerCase();
-		return files.filter((f) => f.path.toLowerCase().includes(term));
-	}, [files, filter]);
+		let result = files;
+
+		// Filter dot files if checkbox is checked
+		if (ignoreDotFiles) {
+			result = result.filter((f) => {
+				const filename = f.path.split("/").pop() || f.path;
+				return !filename.startsWith(".");
+			});
+		}
+
+		// Apply text filter
+		if (filter.trim()) {
+			const term = filter.trim().toLowerCase();
+			result = result.filter((f) => f.path.toLowerCase().includes(term));
+		}
+
+		return result;
+	}, [files, filter, ignoreDotFiles]);
 
 	const totalSize = useMemo(() => files.reduce((sum, f) => sum + f.size, 0), [files]);
 
@@ -129,6 +146,15 @@ export default function FolderUploadDialog() {
 						value={filter}
 						onChange={(e) => setFilter(e.target.value)}
 					/>
+				</div>
+
+				<div className="flex items-center gap-2 text-sm">
+					<Checkbox
+						id="ignore-dot-files"
+						checked={ignoreDotFiles}
+						onCheckedChange={(checked) => setIgnoreDotFiles(checked === true)}
+					/>
+					<Label htmlFor="ignore-dot-files">Ignore dot files</Label>
 				</div>
 
 				<div className="max-h-72 overflow-auto rounded border text-xs">
