@@ -5,7 +5,8 @@
       "Bash(dir:*)",
       "Bash(powershell -Command \"Get-ChildItem -Directory | Select-Object Name\")",
       "Bash(powershell -Command:*)",
-      "Bash(bun add:*)"
+      "Bash(bun add:*)",
+      "Bash(findstr:*)"
     ]
   }
 }
