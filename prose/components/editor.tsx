@@ -3,10 +3,13 @@
 
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
-import CodeMirror from "@uiw/react-codemirror";
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { latex } from "codemirror-lang-latex";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Loading03Icon } from "@hugeicons/core-free-icons";
+import { useLocalStorageState } from "usehooks-ts";
 
 type EditorProps = {
 	title?: string;
@@ -28,7 +31,7 @@ export default function Editor({
 	const [localSaving, setLocalSaving] = useState(false);
 	const saving = isSaving ?? localSaving;
 
-	const extensions = useMemo(() => [markdown(), latex()], []);
+	const extensions = useMemo(() => [markdown(), latex(), EditorView.lineWrapping], []);
 
 	const handleSave = async () => {
 		if (!onSave) return;
@@ -49,7 +52,7 @@ export default function Editor({
 				</div>
 				{onSave && (
 					<Button onClick={handleSave} disabled={disabled || saving}>
-						{saving ? "Saving..." : "Save"}
+						{saving ? <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" /> : "Save"}
 					</Button>
 				)}
 			</div>

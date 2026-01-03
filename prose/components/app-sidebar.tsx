@@ -1,12 +1,10 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useState } from "react";
-// Sidebar that lists documents from the API and lets the user upload a folder
-import { Button } from "@/components/ui/button";
-import { type DocumentSummary, useDocuments, useInvalidateDocuments } from "@/hooks/use-documents";
-
-import { uploadFolder } from "@/lib/upload-folder";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import FolderUploadDialog from "@/components/folder-upload-dialog";
+import { type DocumentSummary } from "@/hooks/use-documents";
+import { useLibrary } from "@/hooks/use-library";
 import {
 	Sidebar,
 	SidebarContent,
@@ -15,6 +13,15 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "./ui/sidebar";
+import { useLocalStorage } from "usehooks-ts";
+
+type FolderNode = {
+	id: string;
+	name: string;
+	parentId: string | null;
+	folders: FolderNode[];
+	documents: DocumentSummary[];
+};
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 	onSelectDocument?: (doc: DocumentSummary) => void;
@@ -22,49 +29,172 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 };
 
 export default function AppSidebar({ onSelectDocument, selectedId, ...props }: AppSidebarProps) {
-	const { data: documents = [], isLoading } = useDocuments();
-	const invalidateDocuments = useInvalidateDocuments();
-	const [isUploading, setIsUploading] = useState(false);
-
-	const handleUploadFolder = useCallback(async () => {
-		setIsUploading(true);
-		try {
-			const result = await uploadFolder();
-			if (result.errors.length) {
-				console.warn("Some files failed to upload", result.errors);
-			}
-			invalidateDocuments();
-		} catch (error) {
-			console.error(error);
-		} finally {
-			setIsUploading(false);
-		}
-	}, [invalidateDocuments]);
+	const { data: library, isLoading } = useLibrary();
+	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
+	const [currentFile, setCurrentFile] = useLocalStorage<string | null>("currentFile", null);
 
 	const handleSelect = useCallback(
 		(doc: DocumentSummary) => {
+			setCurrentFile(doc.id);
 			onSelectDocument?.(doc);
 		},
-		[onSelectDocument]
+		[onSelectDocument, setCurrentFile]
+	);
+
+	useEffect(() => {
+		if (!library) return;
+		if (openFolders.size === 0) {
+			// Open all folders by default on first load; do not override user toggles later
+			setOpenFolders(new Set(library.folders.map((f) => f.id)));
+		}
+	}, [library, openFolders.size]);
+
+	// Restore the last-opened document on reload.
+	useEffect(() => {
+		if (!library) return;
+		if (!currentFile) return;
+		if (selectedId) return;
+		if (!onSelectDocument) return;
+
+		const doc = library.documents.find((d) => d.id === currentFile);
+		if (!doc) {
+			// Stored id no longer exists; clear it so we don't keep trying.
+			setCurrentFile(null);
+			return;
+		}
+
+		// Ensure the document's folder chain is expanded so the active item is visible.
+		if (doc.folderId) {
+			const parentById = new Map(library.folders.map((f) => [f.id, f.parentId] as const));
+			const toOpen: string[] = [];
+			let cursor: string | null = doc.folderId;
+			while (cursor) {
+				toOpen.push(cursor);
+				cursor = parentById.get(cursor) ?? null;
+			}
+			setOpenFolders((prev) => {
+				const next = new Set(prev);
+				for (const id of toOpen) next.add(id);
+				return next;
+			});
+		}
+
+		onSelectDocument({
+			id: doc.id,
+			title: doc.title,
+			updatedAt: doc.updatedAt ?? undefined,
+		});
+	}, [currentFile, library, onSelectDocument, selectedId, setCurrentFile]);
+
+	const tree = useMemo(() => {
+		if (!library) {
+			return { roots: [] as FolderNode[], rootDocuments: [] as DocumentSummary[] };
+		}
+
+		const folderNodes = new Map<string, FolderNode>();
+		library.folders.forEach((f) => {
+			folderNodes.set(f.id, { id: f.id, name: f.name, parentId: f.parentId, folders: [], documents: [] });
+		});
+
+		const roots: FolderNode[] = [];
+		folderNodes.forEach((node) => {
+			if (node.parentId && folderNodes.has(node.parentId)) {
+				folderNodes.get(node.parentId)!.folders.push(node);
+			} else {
+				roots.push(node);
+			}
+		});
+
+		const rootDocuments: DocumentSummary[] = [];
+		library.documents.forEach((doc) => {
+			const summary: DocumentSummary = {
+				id: doc.id,
+				title: doc.title,
+				updatedAt: doc.updatedAt ?? undefined,
+			};
+
+			if (doc.folderId && folderNodes.has(doc.folderId)) {
+				folderNodes.get(doc.folderId)!.documents.push(summary);
+			} else {
+				rootDocuments.push(summary);
+			}
+		});
+
+		return { roots, rootDocuments };
+	}, [library]);
+
+	const toggleFolder = useCallback((id: string) => {
+		setOpenFolders((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) {
+				next.delete(id);
+			} else {
+				next.add(id);
+			}
+			return next;
+		});
+	}, []);
+
+	const renderFolder = useCallback(
+		(node: FolderNode, depth = 0) => {
+			const isOpen = openFolders.has(node.id);
+			return (
+				<div key={node.id} className="space-y-1">
+					<SidebarMenuItem>
+						<SidebarMenuButton
+							onClick={() => toggleFolder(node.id)}
+							className="flex items-center justify-between"
+							style={{ paddingLeft: `${depth * 12 + 12}px` }}
+						>
+							<span className="font-medium">{node.name}</span>
+							<span className="text-xs text-muted-foreground">{isOpen ? "▾" : "▸"}</span>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+					{isOpen && (
+						<div className="space-y-1">
+							{node.documents.map((doc) => (
+								<SidebarMenuItem key={doc.id}>
+									<SidebarMenuButton
+										asChild
+										isActive={doc.id === selectedId}
+										onClick={() => handleSelect(doc)}
+										className="justify-start"
+										style={{ paddingLeft: `${depth * 12 + 24}px` }}
+									>
+										<button className="w-full text-left">
+											<div className="flex flex-col">
+												<span>{doc.title || "Untitled"}</span>
+											</div>
+										</button>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
+							{node.folders.map((child) => renderFolder(child, depth + 1))}
+						</div>
+					)}
+				</div>
+			);
+		},
+		[handleSelect, openFolders, selectedId, toggleFolder]
 	);
 
 	return (
 		<Sidebar collapsible="offExamples" {...props}>
 			<SidebarContent>
 				<div className="flex flex-col gap-2 p-3">
-					<Button onClick={handleUploadFolder} disabled={isUploading}>
-						{isUploading ? "Uploading..." : "Open Folder"}
-					</Button>
+					<FolderUploadDialog />
 					{isLoading && <p className="text-sm text-muted-foreground">Loading documents...</p>}
 				</div>
 				<SidebarGroup>
 					<SidebarMenu>
-						{documents.map((doc) => (
+						{tree.roots.map((folder) => renderFolder(folder))}
+						{tree.rootDocuments.map((doc) => (
 							<SidebarMenuItem key={doc.id}>
 								<SidebarMenuButton
 									asChild
 									isActive={doc.id === selectedId}
 									onClick={() => handleSelect(doc)}
+									className="justify-start"
 								>
 									<button className="w-full text-left">
 										<div className="flex flex-col">
@@ -74,7 +204,7 @@ export default function AppSidebar({ onSelectDocument, selectedId, ...props }: A
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 						))}
-						{!documents.length && !isLoading && (
+						{!tree.roots.length && !tree.rootDocuments.length && !isLoading && (
 							<SidebarMenuItem>
 								<SidebarMenuButton disabled>No documents yet</SidebarMenuButton>
 							</SidebarMenuItem>
