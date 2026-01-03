@@ -1,11 +1,12 @@
 "use client";
 
-import { FileZipIcon, Moon02Icon, Settings02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { FileZipIcon, LibraryIcon, Moon02Icon, Settings02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FolderUploadDialog from "@/components/folder-upload-dialog";
+import PromptLibraryDialog from "@/components/prompt-library-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -54,6 +55,7 @@ export default function AppSidebar({
 	const { theme, setTheme, resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
+	const [promptLibraryOpen, setPromptLibraryOpen] = useState(false);
 	const prevSelectedId = useRef<string | undefined>(undefined);
 
 	// Avoid hydration mismatch for theme
@@ -248,6 +250,12 @@ export default function AppSidebar({
 			<SidebarFooter>
 				<SidebarMenu>
 					<SidebarMenuItem>
+						<SidebarMenuButton size="lg" onClick={() => setPromptLibraryOpen(true)}>
+							<HugeiconsIcon icon={LibraryIcon} className="size-5" />
+							<span className="flex-1 text-left text-sm font-medium">Prompt Library</span>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+					<SidebarMenuItem>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<SidebarMenuButton
@@ -285,6 +293,7 @@ export default function AppSidebar({
 					</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarFooter>
+			<PromptLibraryDialog open={promptLibraryOpen} onOpenChange={setPromptLibraryOpen} />
 		</Sidebar>
 	);
 }

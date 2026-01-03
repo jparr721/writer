@@ -124,7 +124,7 @@ export default function FolderUploadDialog({ workspaceId }: FolderUploadDialogPr
 					Import Folder
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="sm:max-w-xl">
+			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw]">
 				<DialogHeader>
 					<DialogTitle>Import folder</DialogTitle>
 					<DialogDescription>
@@ -164,7 +164,7 @@ export default function FolderUploadDialog({ workspaceId }: FolderUploadDialogPr
 					<Label htmlFor="ignore-dot-files">Ignore dot files</Label>
 				</div>
 
-				<div className="max-h-72 overflow-auto rounded border text-xs">
+				<div className="max-h-[60vh] overflow-auto rounded border text-xs">
 					{filteredFiles.length ? (
 						<ul className="divide-y">
 							{filteredFiles.map((item) => (

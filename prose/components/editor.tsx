@@ -19,6 +19,7 @@ import { EditorDiffDialog } from "@/components/editor-diff-dialog";
 import { PdfPreview } from "@/components/pdf-preview";
 import { Button } from "@/components/ui/button";
 import { useWhisp } from "@/hooks/use-whisp";
+import AIPanel from "./ai-panel";
 
 type ViewMode = "editor" | "split" | "pdf";
 
@@ -132,6 +133,7 @@ export default function Editor({
 								filename={diffFilename}
 								hasChanges={hasDiff}
 								disabled={!hasDiff || disabled}
+								onDiscard={() => onChange(baseValue ?? "")}
 							/>
 							<Button onClick={handleSave} disabled={disabled || saving}>
 								{saving ? (
@@ -172,6 +174,9 @@ export default function Editor({
 						/>
 					</div>
 				)}
+			</div>
+			<div className="flex flex-col gap-3">
+				<AIPanel />
 			</div>
 		</div>
 	);

@@ -19,6 +19,7 @@ type EditorDiffDialogProps = {
 	filename?: string;
 	disabled?: boolean;
 	hasChanges?: boolean;
+	onDiscard?: () => void;
 };
 
 export function EditorDiffDialog({
@@ -27,6 +28,7 @@ export function EditorDiffDialog({
 	filename = "document",
 	disabled,
 	hasChanges = true,
+	onDiscard,
 }: EditorDiffDialogProps) {
 	const [open, setOpen] = useState(false);
 
@@ -65,6 +67,19 @@ export function EditorDiffDialog({
 					</div>
 				) : (
 					<p className="text-sm text-muted-foreground">No changes to display.</p>
+				)}
+				{onDiscard && (
+					<div className="flex justify-end">
+						<Button
+							variant="destructive"
+							onClick={() => {
+								onDiscard();
+								setOpen(false);
+							}}
+						>
+							Discard changes
+						</Button>
+					</div>
 				)}
 			</DialogContent>
 		</Dialog>
