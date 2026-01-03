@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import Editor from "@/components/editor";
+import { useCompilePdf } from "@/hooks/use-compile-pdf";
 import {
 	useCommitDocumentDraft,
 	useDeleteDocumentDraft,
@@ -24,7 +25,9 @@ export default function DocumentPage() {
 	const upsertDraft = useUpsertDocumentDraft(workspaceId);
 	const deleteDraft = useDeleteDocumentDraft(workspaceId);
 	const commitDraft = useCommitDocumentDraft(workspaceId);
+	const compileMutation = useCompilePdf(workspaceId);
 	const [content, setContent] = useState("");
+	const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
 
 	// Sync content from fetched document
 	useEffect(() => {
@@ -67,10 +70,13 @@ export default function DocumentPage() {
 		};
 	}, [content, deleteDraft, document, documentId, draft, upsertDraft, workspaceId]);
 
-	const handleSave = useCallback(() => {
+	const handleSave = useCallback(async () => {
 		if (!documentId || !document) return;
-		commitDraft.mutate({ id: documentId, content });
-	}, [commitDraft, content, document, documentId]);
+		await commitDraft.mutateAsync({ id: documentId, content });
+		compileMutation.mutate(undefined, {
+			onSuccess: (blob) => setPdfBlob(blob),
+		});
+	}, [commitDraft, compileMutation, content, document, documentId]);
 
 	if (isLoading) {
 		return (
@@ -99,6 +105,9 @@ export default function DocumentPage() {
 				onSave={handleSave}
 				isSaving={commitDraft.isPending}
 				disabled={isLoading}
+				pdfBlob={pdfBlob}
+				isCompiling={compileMutation.isPending}
+				compileError={compileMutation.error}
 			/>
 		</div>
 	);
