@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import WorkspaceSelector from "@/components/workspace-selector";
 
 export default function SiteHeader() {
 	return (
@@ -9,6 +9,9 @@ export default function SiteHeader() {
 				<SidebarTrigger className="-ml-1" />
 				<Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
 				<h1 className="text-base font-medium">Prose</h1>
+				<div className="ml-auto">
+					<WorkspaceSelector />
+				</div>
 			</div>
 		</header>
 	);

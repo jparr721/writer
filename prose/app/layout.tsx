@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import { QueryProvider } from "@/lib/query-provider";
 import "./globals.css";
+import { ThemeProvider } from "next-themes";
 
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -28,7 +29,11 @@ export default function RootLayout({
 	return (
 		<html lang="en" className={jetbrainsMono.variable}>
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				<QueryProvider>{children}</QueryProvider>
+				<QueryProvider>
+					<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+						{children}
+					</ThemeProvider>
+				</QueryProvider>
 			</body>
 		</html>
 	);

@@ -1,19 +1,29 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Moon02Icon, Sun03Icon, Settings02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useTheme } from "next-themes";
 import FolderUploadDialog from "@/components/folder-upload-dialog";
-import { type DocumentSummary } from "@/hooks/use-documents";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { DocumentSummary } from "@/hooks/use-documents";
 import { useLibrary } from "@/hooks/use-library";
 import {
 	Sidebar,
 	SidebarContent,
+	SidebarFooter,
 	SidebarGroup,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "./ui/sidebar";
-import { useLocalStorage } from "usehooks-ts";
 
 type FolderNode = {
 	id: string;
@@ -26,20 +36,37 @@ type FolderNode = {
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 	onSelectDocument?: (doc: DocumentSummary) => void;
 	selectedId?: string;
+	workspaceId: string | null;
 };
 
-export default function AppSidebar({ onSelectDocument, selectedId, ...props }: AppSidebarProps) {
-	const { data: library, isLoading } = useLibrary();
+export default function AppSidebar({
+	onSelectDocument,
+	selectedId,
+	workspaceId,
+	...props
+}: AppSidebarProps) {
+	const { data: library, isLoading } = useLibrary(workspaceId);
+	const { theme, setTheme, resolvedTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
-	const [currentFile, setCurrentFile] = useLocalStorage<string | null>("currentFile", null);
+	const prevSelectedId = useRef<string | undefined>(undefined);
+
+	// Avoid hydration mismatch for theme
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	const handleSelect = useCallback(
 		(doc: DocumentSummary) => {
-			setCurrentFile(doc.id);
 			onSelectDocument?.(doc);
 		},
-		[onSelectDocument, setCurrentFile]
+		[onSelectDocument]
 	);
+
+	useEffect(() => {
+		// reset expanded folders when workspace changes
+		setOpenFolders(new Set());
+	}, [workspaceId]);
 
 	useEffect(() => {
 		if (!library) return;
@@ -49,42 +76,28 @@ export default function AppSidebar({ onSelectDocument, selectedId, ...props }: A
 		}
 	}, [library, openFolders.size]);
 
-	// Restore the last-opened document on reload.
+	// Expand folder chain when selectedId changes (e.g., from URL navigation)
 	useEffect(() => {
-		if (!library) return;
-		if (!currentFile) return;
-		if (selectedId) return;
-		if (!onSelectDocument) return;
+		if (!library || !selectedId) return;
+		if (prevSelectedId.current === selectedId) return;
+		prevSelectedId.current = selectedId;
 
-		const doc = library.documents.find((d) => d.id === currentFile);
-		if (!doc) {
-			// Stored id no longer exists; clear it so we don't keep trying.
-			setCurrentFile(null);
-			return;
+		const doc = library.documents.find((d) => d.id === selectedId);
+		if (!doc?.folderId) return;
+
+		const parentById = new Map(library.folders.map((f) => [f.id, f.parentId] as const));
+		const toOpen: string[] = [];
+		let cursor: string | null = doc.folderId;
+		while (cursor) {
+			toOpen.push(cursor);
+			cursor = parentById.get(cursor) ?? null;
 		}
-
-		// Ensure the document's folder chain is expanded so the active item is visible.
-		if (doc.folderId) {
-			const parentById = new Map(library.folders.map((f) => [f.id, f.parentId] as const));
-			const toOpen: string[] = [];
-			let cursor: string | null = doc.folderId;
-			while (cursor) {
-				toOpen.push(cursor);
-				cursor = parentById.get(cursor) ?? null;
-			}
-			setOpenFolders((prev) => {
-				const next = new Set(prev);
-				for (const id of toOpen) next.add(id);
-				return next;
-			});
-		}
-
-		onSelectDocument({
-			id: doc.id,
-			title: doc.title,
-			updatedAt: doc.updatedAt ?? undefined,
+		setOpenFolders((prev) => {
+			const next = new Set(prev);
+			for (const id of toOpen) next.add(id);
+			return next;
 		});
-	}, [currentFile, library, onSelectDocument, selectedId, setCurrentFile]);
+	}, [library, selectedId]);
 
 	const tree = useMemo(() => {
 		if (!library) {
@@ -93,7 +106,13 @@ export default function AppSidebar({ onSelectDocument, selectedId, ...props }: A
 
 		const folderNodes = new Map<string, FolderNode>();
 		library.folders.forEach((f) => {
-			folderNodes.set(f.id, { id: f.id, name: f.name, parentId: f.parentId, folders: [], documents: [] });
+			folderNodes.set(f.id, {
+				id: f.id,
+				name: f.name,
+				parentId: f.parentId,
+				folders: [],
+				documents: [],
+			});
 		});
 
 		const roots: FolderNode[] = [];
@@ -136,7 +155,7 @@ export default function AppSidebar({ onSelectDocument, selectedId, ...props }: A
 	}, []);
 
 	const renderFolder = useCallback(
-		(node: FolderNode, depth = 0) => {
+		function renderFolder(node: FolderNode, depth = 0) {
 			const isOpen = openFolders.has(node.id);
 			return (
 				<div key={node.id} className="space-y-1">
@@ -182,8 +201,8 @@ export default function AppSidebar({ onSelectDocument, selectedId, ...props }: A
 		<Sidebar collapsible="offExamples" {...props}>
 			<SidebarContent>
 				<div className="flex flex-col gap-2 p-3">
-					<FolderUploadDialog />
-					{isLoading && <p className="text-sm text-muted-foreground">Loading documents...</p>}
+					<FolderUploadDialog workspaceId={workspaceId} />
+					{isLoading && <p className="text-sm text-muted-foreground">Loading documents</p>}
 				</div>
 				<SidebarGroup>
 					<SidebarMenu>
@@ -196,11 +215,9 @@ export default function AppSidebar({ onSelectDocument, selectedId, ...props }: A
 									onClick={() => handleSelect(doc)}
 									className="justify-start"
 								>
-									<button className="w-full text-left">
-										<div className="flex flex-col">
-											<span>{doc.title || "Untitled"}</span>
-										</div>
-									</button>
+									<div className="flex flex-col">
+										<span>{doc.title || "Untitled"}</span>
+									</div>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 						))}
@@ -212,6 +229,35 @@ export default function AppSidebar({ onSelectDocument, selectedId, ...props }: A
 					</SidebarMenu>
 				</SidebarGroup>
 			</SidebarContent>
+			<SidebarFooter>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<SidebarMenuButton
+									size="lg"
+									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+								>
+									<HugeiconsIcon
+										icon={mounted && resolvedTheme === "dark" ? Moon02Icon : Sun03Icon}
+										className="size-5"
+									/>
+									<span className="flex-1 text-left text-sm font-medium">
+										{mounted ? (theme === "system" ? "System" : theme === "dark" ? "Dark" : "Light") : "Theme"}
+									</span>
+								</SidebarMenuButton>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent side="top" align="start" className="w-[--radix-dropdown-menu-trigger-width]">
+								<DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+									<DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
+								</DropdownMenuRadioGroup>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarFooter>
 		</Sidebar>
 	);
 }

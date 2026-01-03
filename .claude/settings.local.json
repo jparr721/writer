@@ -6,7 +6,11 @@
       "Bash(powershell -Command \"Get-ChildItem -Directory | Select-Object Name\")",
       "Bash(powershell -Command:*)",
       "Bash(bun add:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:react-uploady.org)"
     ]
   }
 }

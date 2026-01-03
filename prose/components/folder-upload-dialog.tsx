@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { Loading03Icon, MultiplicationSignIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import axios from "axios";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
 	Dialog,
 	DialogContent,
@@ -15,10 +16,9 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useInvalidateDocuments } from "@/hooks/use-documents";
 import { useInvalidateLibrary } from "@/hooks/use-library";
-import { MultiplicationSignIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 type PendingFile = {
 	file: File;
@@ -32,15 +32,19 @@ function getRelativePath(file: File): string {
 	return relPath && relPath.length > 0 ? relPath : file.name;
 }
 
-export default function FolderUploadDialog() {
+type FolderUploadDialogProps = {
+	workspaceId: string | null;
+};
+
+export default function FolderUploadDialog({ workspaceId }: FolderUploadDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [files, setFiles] = useState<PendingFile[]>([]);
 	const [filter, setFilter] = useState("");
 	const [isUploading, setIsUploading] = useState(false);
 	const [ignoreDotFiles, setIgnoreDotFiles] = useState(true);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
-	const invalidateDocuments = useInvalidateDocuments();
-	const invalidateLibrary = useInvalidateLibrary();
+	const invalidateDocuments = useInvalidateDocuments(workspaceId);
+	const invalidateLibrary = useInvalidateLibrary(workspaceId);
 
 	const handleChoose = useCallback(() => {
 		fileInputRef.current?.click();
@@ -89,6 +93,7 @@ export default function FolderUploadDialog() {
 
 	const handleUpload = useCallback(async () => {
 		if (!files.length) return;
+		if (!workspaceId) return;
 		setIsUploading(true);
 		try {
 			const formData = new FormData();
@@ -96,7 +101,7 @@ export default function FolderUploadDialog() {
 				formData.append("files", item.file, item.path);
 			}
 
-			await axios.post("/api/documents/import", formData, {
+			await axios.post(`/api/workspace/${workspaceId}/documents/import`, formData, {
 				headers: { "Content-Type": "multipart/form-data" },
 			});
 
@@ -110,19 +115,21 @@ export default function FolderUploadDialog() {
 		} finally {
 			setIsUploading(false);
 		}
-	}, [files, invalidateDocuments, invalidateLibrary]);
+	}, [files, invalidateDocuments, invalidateLibrary, workspaceId]);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button variant="default">Import Folder</Button>
+				<Button variant="default" disabled={!workspaceId}>
+					Import Folder
+				</Button>
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-xl">
 				<DialogHeader>
 					<DialogTitle>Import folder</DialogTitle>
 					<DialogDescription>
-						Select a folder to import. You can remove files before uploading. Hierarchy is preserved when
-						relative paths are available.
+						Select a folder to import. You can remove files before uploading. Hierarchy is preserved
+						when relative paths are available.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -142,7 +149,7 @@ export default function FolderUploadDialog() {
 						Choose folder
 					</Button>
 					<Input
-						placeholder="Filter files…"
+						placeholder="Filter files"
 						value={filter}
 						onChange={(e) => setFilter(e.target.value)}
 					/>
@@ -174,7 +181,7 @@ export default function FolderUploadDialog() {
 										onClick={() => handleRemove(item.path)}
 										className="shrink-0"
 									>
-                                        <HugeiconsIcon icon={MultiplicationSignIcon} />
+										<HugeiconsIcon icon={MultiplicationSignIcon} />
 									</Button>
 								</li>
 							))}
@@ -186,7 +193,8 @@ export default function FolderUploadDialog() {
 
 				<div className="flex items-center justify-between text-xs text-muted-foreground">
 					<div>
-						{files.length} file{files.length === 1 ? "" : "s"} selected · {(totalSize / 1024).toFixed(1)} KB
+						{files.length} file{files.length === 1 ? "" : "s"} selected ·{" "}
+						{(totalSize / 1024).toFixed(1)} KB
 					</div>
 					<div>{filteredFiles.length !== files.length ? `${filteredFiles.length} shown` : ""}</div>
 				</div>
@@ -196,11 +204,14 @@ export default function FolderUploadDialog() {
 						Cancel
 					</Button>
 					<Button onClick={handleUpload} disabled={!files.length || isUploading}>
-						{isUploading ? "Uploading..." : "Upload"}
+						{isUploading ? (
+							<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+						) : (
+							"Upload"
+						)}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	);
 }
-

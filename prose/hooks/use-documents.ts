@@ -13,42 +13,48 @@ export type Document = {
 	content: string;
 };
 
-export function useDocuments() {
+export function useDocuments(workspaceId: string | null | undefined) {
 	return useQuery({
-		queryKey: ["documents"],
+		queryKey: ["documents", workspaceId],
+		enabled: !!workspaceId,
 		queryFn: async () => {
-			const { data } = await axios.get<DocumentSummary[]>("/api/documents");
+			const { data } = await axios.get<DocumentSummary[]>(
+				`/api/workspace/${workspaceId}/documents`
+			);
 			return data;
 		},
 	});
 }
 
-export function useDocument(id: string | undefined) {
+export function useDocument(workspaceId: string | null | undefined, id: string | undefined) {
 	return useQuery({
-		queryKey: ["document", id],
+		queryKey: ["document", workspaceId, id],
 		queryFn: async () => {
-			const { data } = await axios.get<Document>(`/api/documents/${id}`);
+			const { data } = await axios.get<Document>(`/api/workspace/${workspaceId}/documents/${id}`);
 			return data;
 		},
-		enabled: !!id,
+		enabled: !!workspaceId && !!id,
 	});
 }
 
-export function useSaveDocument() {
+export function useSaveDocument(workspaceId: string | null | undefined) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async ({ id, title, content }: { id: string; title: string; content: string }) => {
-			const { data } = await axios.put<Document>(`/api/documents/${id}`, { title, content });
+			const { data } = await axios.put<Document>(`/api/workspace/${workspaceId}/documents/${id}`, {
+				title,
+				content,
+			});
 			return data;
 		},
 		onSuccess: (_, { id }) => {
-			queryClient.invalidateQueries({ queryKey: ["document", id] });
-			queryClient.invalidateQueries({ queryKey: ["documents"] });
+			queryClient.invalidateQueries({ queryKey: ["document", workspaceId, id] });
+			queryClient.invalidateQueries({ queryKey: ["documents", workspaceId] });
 		},
 	});
 }
 
-export function useInvalidateDocuments() {
+export function useInvalidateDocuments(workspaceId: string | null | undefined) {
 	const queryClient = useQueryClient();
-	return () => queryClient.invalidateQueries({ queryKey: ["documents"] });
+	return () => queryClient.invalidateQueries({ queryKey: ["documents", workspaceId] });
 }

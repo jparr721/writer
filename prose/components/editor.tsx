@@ -3,12 +3,12 @@
 
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
+import { Loading03Icon, Mic01Icon, MicOff01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import CodeMirror, { EditorView, type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { latex } from "codemirror-lang-latex";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Loading03Icon, Mic01Icon, MicOff01Icon } from "@hugeicons/core-free-icons";
 import { useWhisp } from "@/hooks/use-whisp";
 
 type EditorProps = {
@@ -57,7 +57,7 @@ export default function Editor({
 	};
 
 	return (
-		<div className="flex h-full flex-col gap-3 p-4">
+		<div className="flex flex-1 flex-col min-h-0 gap-3 p-4">
 			<div className="flex items-center justify-between gap-3">
 				<div>
 					<p className="text-xs text-muted-foreground">Editing</p>
@@ -74,12 +74,16 @@ export default function Editor({
 					</Button>
 					{onSave && (
 						<Button onClick={handleSave} disabled={disabled || saving}>
-							{saving ? <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" /> : "Save"}
+							{saving ? (
+								<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+							) : (
+								"Save"
+							)}
 						</Button>
 					)}
 				</div>
 			</div>
-			<div className="flex-1 rounded-md border">
+			<div className="flex-1 min-h-0 rounded-md border overflow-y-auto">
 				<CodeMirror
 					ref={editorRef}
 					value={value}

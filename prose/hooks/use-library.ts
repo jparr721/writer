@@ -19,18 +19,18 @@ export type LibraryResponse = {
 	documents: LibraryDocument[];
 };
 
-export function useLibrary() {
+export function useLibrary(workspaceId: string | null | undefined) {
 	return useQuery({
-		queryKey: ["library"],
+		queryKey: ["library", workspaceId],
+		enabled: !!workspaceId,
 		queryFn: async () => {
-			const { data } = await axios.get<LibraryResponse>("/api/library");
+			const { data } = await axios.get<LibraryResponse>(`/api/workspace/${workspaceId}/library`);
 			return data;
 		},
 	});
 }
 
-export function useInvalidateLibrary() {
+export function useInvalidateLibrary(workspaceId: string | null | undefined) {
 	const queryClient = useQueryClient();
-	return () => queryClient.invalidateQueries({ queryKey: ["library"] });
+	return () => queryClient.invalidateQueries({ queryKey: ["library", workspaceId] });
 }
-
