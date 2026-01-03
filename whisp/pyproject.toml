@@ -1,0 +1,9 @@
+[project]
+name = "whisp"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "whisper-live>=0.7.1",
+]
