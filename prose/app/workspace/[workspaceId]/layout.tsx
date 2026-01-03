@@ -1,27 +1,21 @@
 "use client";
 
+import axios from "axios";
+import { useParams, useRouter } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
 import AppSidebar from "@/components/app-sidebar";
 import SiteHeader from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import type { DocumentSummary } from "@/hooks/use-documents";
 import { useWorkspaceSettings } from "@/hooks/use-workspace-settings";
 
-export default function WorkspaceLayout({
-	children,
-}: {
-	children: React.ReactNode;
-}) {
+export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
 	const params = useParams<{ workspaceId: string; documentId?: string }>();
 	const workspaceId = Array.isArray(params.workspaceId)
 		? params.workspaceId[0]
 		: params.workspaceId;
-	const documentId = Array.isArray(params.documentId)
-		? params.documentId[0]
-		: params.documentId;
+	const documentId = Array.isArray(params.documentId) ? params.documentId[0] : params.documentId;
 	const router = useRouter();
 	const { setWorkspaceId } = useWorkspaceSettings();
 	const [validating, setValidating] = useState(true);

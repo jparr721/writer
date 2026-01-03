@@ -1,12 +1,8 @@
+import { PassThrough } from "node:stream";
 import archiver from "archiver";
 import { eq } from "drizzle-orm";
-import { PassThrough } from "node:stream";
 import { ZodError } from "zod";
-import {
-	type FolderIdParams,
-	folderIdParamsSchema,
-	type ErrorResponse,
-} from "@/app/api/schemas";
+import { type ErrorResponse, type FolderIdParams, folderIdParamsSchema } from "@/app/api/schemas";
 import { db } from "@/lib/db";
 import { documents, folders } from "@/lib/db/schema";
 import {
@@ -62,8 +58,8 @@ export async function GET(_request: Request, { params }: RouteParams) {
 			const relativePath = fullPath.startsWith(basePath + "/")
 				? fullPath.slice(basePath.length + 1)
 				: fullPath.startsWith(basePath)
-				? fullPath.slice(basePath.length) || doc.title
-				: fullPath;
+					? fullPath.slice(basePath.length) || doc.title
+					: fullPath;
 
 			archive.append(doc.content, { name: relativePath });
 		}

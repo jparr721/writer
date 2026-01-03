@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Document, Workspace } from "@/lib/db/schema";
+import type { Document, DocumentDraft, Workspace } from "@/lib/db/schema";
 
 export const documentIdParamsSchema = z.object({
 	id: z.uuid(),
@@ -17,6 +17,14 @@ export const createDocumentBodySchema = z.object({
 export const updateDocumentBodySchema = z.object({
 	title: z.string().trim().optional(),
 	content: z.string().optional(),
+});
+
+export const upsertDraftBodySchema = z.object({
+	content: z.string(),
+});
+
+export const commitDocumentBodySchema = z.object({
+	content: z.string(),
 });
 
 export const workspaceIdParamsSchema = z.object({
@@ -39,6 +47,7 @@ export type SuccessResponse = { success: boolean };
 
 export type DocumentResponse = Document;
 export type DocumentListResponse = Document[];
+export type DocumentDraftResponse = DocumentDraft;
 export type WorkspaceResponse = Workspace;
 export type WorkspaceListResponse = Workspace[];
 export type ExportDocumentResponse = SuccessResponse & {

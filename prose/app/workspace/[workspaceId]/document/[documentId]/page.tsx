@@ -1,30 +1,42 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import Editor from "@/components/editor";
-import { useDocument, useSaveDocument } from "@/hooks/use-documents";
+import {
+	useCommitDocumentDraft,
+	useDeleteDocumentDraft,
+	useDocument,
+	useDocumentDraft,
+	useUpsertDocumentDraft,
+} from "@/hooks/use-documents";
 
 export default function DocumentPage() {
 	const params = useParams<{ workspaceId: string; documentId: string }>();
 	const workspaceId = Array.isArray(params.workspaceId)
 		? params.workspaceId[0]
 		: params.workspaceId;
-	const documentId = Array.isArray(params.documentId)
-		? params.documentId[0]
-		: params.documentId;
+	const documentId = Array.isArray(params.documentId) ? params.documentId[0] : params.documentId;
 	const router = useRouter();
 
 	const { data: document, isLoading, error } = useDocument(workspaceId, documentId);
-	const saveMutation = useSaveDocument(workspaceId);
+	const { data: draft } = useDocumentDraft(workspaceId, documentId);
+	const upsertDraft = useUpsertDocumentDraft(workspaceId);
+	const deleteDraft = useDeleteDocumentDraft(workspaceId);
+	const commitDraft = useCommitDocumentDraft(workspaceId);
 	const [content, setContent] = useState("");
 
 	// Sync content from fetched document
 	useEffect(() => {
-		if (document) {
+		if (draft?.content !== undefined) {
+			setContent(draft.content ?? "");
+			return;
+		}
+
+		if (document?.content !== undefined) {
 			setContent(document.content ?? "");
 		}
-	}, [document]);
+	}, [document, draft]);
 
 	// Handle document not found - redirect to workspace landing
 	useEffect(() => {
@@ -33,10 +45,32 @@ export default function DocumentPage() {
 		}
 	}, [error, isLoading, router, workspaceId]);
 
+	// Persist draft changes with debounce. If content matches base, delete draft.
+	useEffect(() => {
+		if (!documentId || !workspaceId || !document) return;
+
+		const baseContent = document.content ?? "";
+
+		const handler = setTimeout(() => {
+			if (content === baseContent) {
+				if (draft) {
+					deleteDraft.mutate({ id: documentId });
+				}
+				return;
+			}
+
+			upsertDraft.mutate({ id: documentId, content });
+		}, 400);
+
+		return () => {
+			clearTimeout(handler);
+		};
+	}, [content, deleteDraft, document, documentId, draft, upsertDraft, workspaceId]);
+
 	const handleSave = useCallback(() => {
 		if (!documentId || !document) return;
-		saveMutation.mutate({ id: documentId, title: document.title, content });
-	}, [content, document, saveMutation, documentId]);
+		commitDraft.mutate({ id: documentId, content });
+	}, [commitDraft, content, document, documentId]);
 
 	if (isLoading) {
 		return (
@@ -59,9 +93,11 @@ export default function DocumentPage() {
 			<Editor
 				title={document.title}
 				value={content}
+				baseValue={document.content ?? ""}
+				diffFilename={document.title}
 				onChange={setContent}
 				onSave={handleSave}
-				isSaving={saveMutation.isPending}
+				isSaving={commitDraft.isPending}
 				disabled={isLoading}
 			/>
 		</div>

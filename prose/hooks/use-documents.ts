@@ -13,6 +13,15 @@ export type Document = {
 	content: string;
 };
 
+export type DocumentDraft = {
+	id: string;
+	workspaceId: string;
+	documentId: string;
+	content: string;
+	createdAt?: string;
+	updatedAt?: string;
+};
+
 export function useDocuments(workspaceId: string | null | undefined) {
 	return useQuery({
 		queryKey: ["documents", workspaceId],
@@ -57,4 +66,67 @@ export function useSaveDocument(workspaceId: string | null | undefined) {
 export function useInvalidateDocuments(workspaceId: string | null | undefined) {
 	const queryClient = useQueryClient();
 	return () => queryClient.invalidateQueries({ queryKey: ["documents", workspaceId] });
+}
+
+export function useDocumentDraft(workspaceId: string | null | undefined, id: string | undefined) {
+	return useQuery({
+		queryKey: ["document-draft", workspaceId, id],
+		queryFn: async () => {
+			const { data } = await axios.get<DocumentDraft | null>(
+				`/api/workspace/${workspaceId}/documents/${id}/draft`
+			);
+			return data;
+		},
+		enabled: !!workspaceId && !!id,
+	});
+}
+
+export function useUpsertDocumentDraft(workspaceId: string | null | undefined) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({ id, content }: { id: string; content: string }) => {
+			const { data } = await axios.put<DocumentDraft>(
+				`/api/workspace/${workspaceId}/documents/${id}/draft`,
+				{
+					content,
+				}
+			);
+			return data;
+		},
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: ["document-draft", workspaceId, id] });
+		},
+	});
+}
+
+export function useDeleteDocumentDraft(workspaceId: string | null | undefined) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({ id }: { id: string }) => {
+			await axios.delete(`/api/workspace/${workspaceId}/documents/${id}/draft`);
+		},
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: ["document-draft", workspaceId, id] });
+		},
+	});
+}
+
+export function useCommitDocumentDraft(workspaceId: string | null | undefined) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({ id, content }: { id: string; content: string }) => {
+			const { data } = await axios.post<Document>(
+				`/api/workspace/${workspaceId}/documents/${id}/commit`,
+				{
+					content,
+				}
+			);
+			return data;
+		},
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: ["document", workspaceId, id] });
+			queryClient.invalidateQueries({ queryKey: ["documents", workspaceId] });
+			queryClient.invalidateQueries({ queryKey: ["document-draft", workspaceId, id] });
+		},
+	});
 }

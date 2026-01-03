@@ -8,6 +8,13 @@
 			"when": 1767403776789,
 			"tag": "0000_ancient_sage",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1767469469186,
+			"tag": "0001_overconfident_the_liberteens",
+			"breakpoints": true
 		}
 	]
 }

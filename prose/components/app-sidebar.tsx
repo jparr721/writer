@@ -1,10 +1,10 @@
 "use client";
 
-import type React from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FileZipIcon, Moon02Icon, Sun03Icon, Settings02Icon } from "@hugeicons/core-free-icons";
+import { FileZipIcon, Moon02Icon, Settings02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
+import type React from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FolderUploadDialog from "@/components/folder-upload-dialog";
 import {
 	DropdownMenu,

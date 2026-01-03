@@ -62,9 +62,30 @@ export const documents = pgTable(
 	]
 );
 
+export const documentDrafts = pgTable(
+	"document_drafts",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		workspaceId: uuid("workspace_id")
+			.notNull()
+			.references(() => workspaces.id, { onDelete: "cascade" }),
+		documentId: uuid("document_id")
+			.notNull()
+			.references(() => documents.id, { onDelete: "cascade" }),
+		content: text("content").notNull().default(""),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+	},
+	(table) => [
+		uniqueIndex("idx_document_drafts_workspace_document").on(table.workspaceId, table.documentId),
+	]
+);
+
 export type Workspace = typeof workspaces.$inferSelect;
 export type NewWorkspace = typeof workspaces.$inferInsert;
 export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;
+export type DocumentDraft = typeof documentDrafts.$inferSelect;
+export type NewDocumentDraft = typeof documentDrafts.$inferInsert;
 export type Folder = typeof folders.$inferSelect;
 export type NewFolder = typeof folders.$inferInsert;

@@ -8,12 +8,15 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import CodeMirror, { EditorView, type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { latex } from "codemirror-lang-latex";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { EditorDiffDialog } from "@/components/editor-diff-dialog";
 import { Button } from "@/components/ui/button";
 import { useWhisp } from "@/hooks/use-whisp";
 
 type EditorProps = {
 	title?: string;
 	value: string;
+	baseValue?: string;
+	diffFilename?: string;
 	onChange: (value: string) => void;
 	onSave?: () => Promise<void> | void;
 	isSaving?: boolean;
@@ -23,6 +26,8 @@ type EditorProps = {
 export default function Editor({
 	title,
 	value,
+	baseValue,
+	diffFilename,
 	onChange,
 	onSave,
 	isSaving,
@@ -32,6 +37,7 @@ export default function Editor({
 	const saving = isSaving ?? localSaving;
 	const editorRef = useRef<ReactCodeMirrorRef>(null);
 	const { isRecording, text, start, stop } = useWhisp();
+	const hasDiff = baseValue !== undefined && value !== baseValue;
 
 	// Insert transcribed text at cursor position and move cursor to end
 	useEffect(() => {
@@ -73,13 +79,22 @@ export default function Editor({
 						<HugeiconsIcon icon={isRecording ? MicOff01Icon : Mic01Icon} className="size-4" />
 					</Button>
 					{onSave && (
-						<Button onClick={handleSave} disabled={disabled || saving}>
-							{saving ? (
-								<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
-							) : (
-								"Save"
-							)}
-						</Button>
+						<>
+							<EditorDiffDialog
+								baseValue={baseValue ?? ""}
+								value={value}
+								filename={diffFilename}
+								hasChanges={hasDiff}
+								disabled={!hasDiff || disabled}
+							/>
+							<Button onClick={handleSave} disabled={disabled || saving}>
+								{saving ? (
+									<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+								) : (
+									"Save"
+								)}
+							</Button>
+						</>
 					)}
 				</div>
 			</div>

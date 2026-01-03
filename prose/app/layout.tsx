@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import { QueryProvider } from "@/lib/query-provider";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
+import "@git-diff-view/react/styles/diff-view-pure.css";
 
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-sans" });
 

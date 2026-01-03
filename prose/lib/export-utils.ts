@@ -1,4 +1,4 @@
-import type { Folder, Document } from "@/lib/db/schema";
+import type { Document, Folder } from "@/lib/db/schema";
 
 export type FolderWithPath = Folder & { path: string };
 export type DocumentWithPath = Document & { path: string };
@@ -86,10 +86,7 @@ export function getDescendantFolderIds(folderId: string, folders: Folder[]): Set
 /**
  * Filters documents to only those within a set of folder IDs
  */
-export function getDocumentsInFolders(
-	documents: Document[],
-	folderIds: Set<string>
-): Document[] {
+export function getDocumentsInFolders(documents: Document[], folderIds: Set<string>): Document[] {
 	return documents.filter((doc) => doc.folderId && folderIds.has(doc.folderId));
 }
 
