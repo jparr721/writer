@@ -86,12 +86,11 @@ export function ConsistencyCheckSection({
 	const { prompts } = usePrompts();
 
 	const handleRunChecker = async () => {
-		const promptContent = prompts["checker-default"]?.content ?? "";
 		try {
 			await checker.mutateAsync({
 				documentId,
 				content,
-				promptContent,
+				promptContent: prompts.checker,
 			});
 		} catch (error) {
 			console.error("Error running checker:", error);

@@ -2,6 +2,7 @@
 
 import { ArrowRight01Icon, Idea01Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ import {
 } from "@/hooks/use-ai-tools";
 import { usePrompts } from "@/hooks/use-prompts";
 import type { HelpSuggestion } from "@/lib/db/schema";
-import { PromptSelector } from "./prompt-selector";
+import { Label } from "../ui/label";
 
 type HelpSectionProps = {
 	workspaceId: string;
@@ -45,13 +46,11 @@ function HelpInputDialog({
 }) {
 	const [open, setOpen] = useState(false);
 	const [specificRequests, setSpecificRequests] = useState("");
-	const [selectedPromptId, setSelectedPromptId] = useState<string | null>("helper-default");
 	const helper = useHelper(workspaceId);
 	const { data: bookContext = [] } = useBookContext(workspaceId);
 	const { prompts } = usePrompts();
 
 	const handleSubmit = async () => {
-		const promptContent = prompts[selectedPromptId ?? "helper-default"]?.content ?? "";
 		const contextText = bookContext.map((c) => `## ${c.title}\n${c.summary}`).join("\n\n");
 
 		await helper.mutateAsync({
@@ -59,7 +58,7 @@ function HelpInputDialog({
 			content,
 			bookContext: contextText,
 			specificRequests,
-			promptContent,
+			promptContent: prompts.helper,
 		});
 
 		setOpen(false);
@@ -83,15 +82,6 @@ function HelpInputDialog({
 					</DialogDescription>
 				</DialogHeader>
 				<div className="flex flex-col gap-4">
-					<div>
-						<label className="mb-1.5 block text-sm font-medium">Prompt</label>
-						<PromptSelector
-							category="helper"
-							value={selectedPromptId}
-							onValueChange={setSelectedPromptId}
-							disabled={helper.isPending}
-						/>
-					</div>
 					{bookContext.length > 0 && (
 						<div>
 							<label className="mb-1.5 block text-sm font-medium">Book Context</label>
@@ -126,6 +116,8 @@ function HelpInputDialog({
 	);
 }
 
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+
 function HelpResultsDialog({
 	suggestion,
 	onClose,
@@ -133,14 +125,27 @@ function HelpResultsDialog({
 	suggestion: HelpSuggestion;
 	onClose: () => void;
 }) {
-	const handleApplyToChapter = () => {
-		// No-op for now - will implement fuzzy chapter selection later
-		console.log("Apply to chapter - not yet implemented");
+	const [newChapterSteeringVisible, setNewChapterSteeringVisible] = useState(false);
+	const [newChapterSteering, setNewChapterSteering] = useState("");
+	const [continuationType, setContinuationType] = useState<"conservative" | "divergent">(
+		"conservative"
+	);
+	// This page is on /documents/[documentId] so we need to get the document ID from the URL
+	const { documentId } = useParams();
+
+	// Applies the suggestion to the chapter using the LLM to do a full replacement of the chapter content
+	const handleApplyToChapter = () => {};
+
+	// Handler to set the continuation type from the string value RadioGroup gives
+	const handleContinuationTypeChange = (value: string) => {
+		if (value === "conservative" || value === "divergent") {
+			setContinuationType(value);
+		}
 	};
 
 	return (
 		<Dialog open onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="max-w-2xl max-h-[80vh]">
+			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw] max-h-[80vh]">
 				<DialogHeader>
 					<DialogTitle>Writing Suggestion</DialogTitle>
 					<DialogDescription>
@@ -150,7 +155,58 @@ function HelpResultsDialog({
 				<ScrollArea className="max-h-[50vh]">
 					<div className="whitespace-pre-wrap text-sm">{suggestion.response}</div>
 				</ScrollArea>
-				<div className="flex justify-end gap-2">
+				<div className="flex flex-col gap-4">
+					<div>
+						<Label className="mb-2 block text-sm font-medium">
+							How should the suggestion change the chapter continuation?
+						</Label>
+						<RadioGroup
+							value={continuationType}
+							onValueChange={handleContinuationTypeChange}
+							className="flex flex-col gap-2"
+						>
+							<div className="flex items-start gap-2">
+								<RadioGroupItem value="conservative" id="continuation-conservative" />
+								<div>
+									<Label htmlFor="continuation-conservative" className="text-sm">
+										Follow The Current Plot
+									</Label>
+									<div className="block text-xs text-muted-foreground">
+										Stay close to the current plot direction and main events.
+									</div>
+								</div>
+							</div>
+							<div className="flex items-start gap-2">
+								<RadioGroupItem value="divergent" id="continuation-divergent" />
+								<div>
+									<Label htmlFor="continuation-divergent" className="text-sm">
+										Take A Different Path
+									</Label>
+									<div className="block text-xs text-muted-foreground">
+										Allow for more significant changes or surprising turns.
+									</div>
+								</div>
+							</div>
+						</RadioGroup>
+					</div>
+					<div className="flex gap-2 items-center">
+						<Label>Adjust The Suggestion Before Applying</Label>
+						<Checkbox
+							checked={newChapterSteeringVisible}
+							onCheckedChange={(checked) =>
+								setNewChapterSteeringVisible(checked === "indeterminate" ? false : checked)
+							}
+						/>
+					</div>
+					{newChapterSteeringVisible && (
+						<Textarea
+							value={newChapterSteering}
+							onChange={(e) => setNewChapterSteering(e.target.value)}
+							placeholder="Add specific guidance for the content"
+						/>
+					)}
+				</div>
+				<div className="flex justify-end gap-2 mt-2">
 					<Button variant="outline" onClick={handleApplyToChapter}>
 						<HugeiconsIcon icon={ArrowRight01Icon} className="mr-2 size-4" />
 						Apply to Chapter

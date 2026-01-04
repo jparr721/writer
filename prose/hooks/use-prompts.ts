@@ -3,17 +3,17 @@
 import { useCallback, useMemo } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import { defaultPrompts } from "@/lib/prompts/defaults";
-import type { Prompt, PromptCategory, PromptLibrary } from "@/lib/prompts/types";
+import type { PromptCategory, PromptLibrary } from "@/lib/prompts/types";
 
-const STORAGE_KEY = "prompt-library";
+const STORAGE_KEY = "prompt-library-v2";
 
-const mergeWithDefaults = (library?: PromptLibrary | null): PromptLibrary => {
-	const merged: PromptLibrary = { ...defaultPrompts };
-	if (!library) return merged;
-	for (const [id, prompt] of Object.entries(library)) {
-		merged[id] = prompt;
-	}
-	return merged;
+const mergeWithDefaults = (library?: Partial<PromptLibrary> | null): PromptLibrary => {
+	if (!library) return { ...defaultPrompts };
+	return {
+		editor: library.editor ?? defaultPrompts.editor,
+		helper: library.helper ?? defaultPrompts.helper,
+		checker: library.checker ?? defaultPrompts.checker,
+	};
 };
 
 export function usePrompts() {
@@ -23,10 +23,10 @@ export function usePrompts() {
 		{
 			deserializer: (value) => {
 				try {
-					const parsed = JSON.parse(value) as PromptLibrary;
+					const parsed = JSON.parse(value) as Partial<PromptLibrary>;
 					return mergeWithDefaults(parsed);
 				} catch {
-					return defaultPrompts;
+					return { ...defaultPrompts };
 				}
 			},
 		}
@@ -34,52 +34,32 @@ export function usePrompts() {
 
 	const prompts = useMemo(() => mergeWithDefaults(storedPrompts), [storedPrompts]);
 
-	const getPromptsByCategory = useCallback(
-		(category: PromptCategory): Prompt[] =>
-			Object.values(prompts).filter((prompt) => prompt.category === category),
-		[prompts]
-	);
-
 	const updatePrompt = useCallback(
-		(id: string, content: string) => {
-			setStoredPrompts((prev) => {
-				const merged = mergeWithDefaults(prev);
-				const existing = merged[id];
-				if (!existing) return merged;
-				return {
-					...merged,
-					[id]: {
-						...existing,
-						content,
-					},
-				};
-			});
+		(category: PromptCategory, content: string) => {
+			setStoredPrompts((prev) => ({
+				...mergeWithDefaults(prev),
+				[category]: content,
+			}));
 		},
 		[setStoredPrompts]
 	);
 
 	const resetPrompt = useCallback(
-		(id: string) => {
-			setStoredPrompts((prev) => {
-				const merged = mergeWithDefaults(prev);
-				if (defaultPrompts[id]) {
-					return { ...merged, [id]: defaultPrompts[id] };
-				}
-				const next = { ...merged };
-				delete next[id];
-				return next;
-			});
+		(category: PromptCategory) => {
+			setStoredPrompts((prev) => ({
+				...mergeWithDefaults(prev),
+				[category]: defaultPrompts[category],
+			}));
 		},
 		[setStoredPrompts]
 	);
 
 	const resetAll = useCallback(() => {
-		setStoredPrompts(defaultPrompts);
+		setStoredPrompts({ ...defaultPrompts });
 	}, [setStoredPrompts]);
 
 	return {
 		prompts,
-		getPromptsByCategory,
 		updatePrompt,
 		resetPrompt,
 		resetAll,
