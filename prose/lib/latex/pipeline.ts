@@ -29,9 +29,7 @@ function findMainTexDir(files: { relativePath: string }[]): string | null {
 	return null;
 }
 
-export async function runCompilationPipeline(
-	workspaceId: string
-): Promise<PipelineResult> {
+export async function runCompilationPipeline(workspaceId: string): Promise<PipelineResult> {
 	const buildDir = join(tmpdir(), `latex-build-${randomUUID()}`);
 
 	try {
@@ -59,7 +57,7 @@ export async function runCompilationPipeline(
 		}
 
 		// Find main.tex location
-		console.log(files.map(f => f.relativePath).join("\n"));
+		console.log(files.map((f) => f.relativePath).join("\n"));
 		const mainTexDir = findMainTexDir(files);
 		if (mainTexDir === null) {
 			return {

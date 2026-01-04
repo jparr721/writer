@@ -12,4 +12,3 @@ export type Prompt = {
 export type PromptLibrary = Record<string, Prompt>;
 
 export const PROMPT_CATEGORIES: PromptCategory[] = ["editor", "helper", "checker"];
-

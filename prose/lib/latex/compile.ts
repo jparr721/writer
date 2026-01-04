@@ -11,12 +11,7 @@ export function compilePdf(buildDir: string): Promise<CompilationResult> {
 
 		const proc = spawn(
 			"pdflatex",
-			[
-				"-interaction=nonstopmode",
-				"-halt-on-error",
-				`-output-directory=${buildDir}`,
-				mainTexPath,
-			],
+			["-interaction=nonstopmode", "-halt-on-error", `-output-directory=${buildDir}`, mainTexPath],
 			{
 				cwd: buildDir,
 				timeout: COMPILE_TIMEOUT_MS,

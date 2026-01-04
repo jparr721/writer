@@ -88,14 +88,14 @@ export default function DocumentPage() {
 
 	if (!document) {
 		return (
-			<div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+			<div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-sm text-muted-foreground">
 				<p>Document not found</p>
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex flex-1 flex-col min-h-0 overflow-hidden rounded-lg border">
+		<div className="flex flex-1 flex-col min-h-0 overflow-hidden">
 			<Editor
 				title={document.title}
 				value={content}
@@ -108,6 +108,8 @@ export default function DocumentPage() {
 				pdfBlob={pdfBlob}
 				isCompiling={compileMutation.isPending}
 				compileError={compileMutation.error}
+				workspaceId={workspaceId}
+				documentId={documentId}
 			/>
 		</div>
 	);

@@ -51,7 +51,7 @@ export function EditorDiffDialog({
 					Diff
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw]">
+			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw] max-h-[80vh]">
 				<DialogHeader>
 					<DialogTitle>Changes</DialogTitle>
 					<DialogDescription>Comparing saved content to your current draft.</DialogDescription>

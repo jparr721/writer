@@ -121,4 +121,3 @@ export const defaultPrompts: PromptLibrary = {
 };
 
 export const defaultPromptList: Prompt[] = Object.values(defaultPrompts);
-

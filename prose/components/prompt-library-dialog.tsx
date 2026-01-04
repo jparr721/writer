@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -8,7 +9,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -73,7 +73,7 @@ export default function PromptLibraryDialog({ open, onOpenChange }: PromptLibrar
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw]">
+			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw] max-h-[60vh]">
 				<DialogHeader>
 					<DialogTitle>Prompt Library</DialogTitle>
 					<DialogDescription>
@@ -116,7 +116,6 @@ export default function PromptLibraryDialog({ open, onOpenChange }: PromptLibrar
 									value={draft}
 									onChange={(event) => setDraft(event.target.value)}
 									placeholder="Select a prompt to edit"
-									className="h-[60vh] flex-1"
 								/>
 								<div className="flex flex-wrap items-center justify-between gap-2">
 									<Button variant="ghost" onClick={handleReset} disabled={!activePromptId}>
@@ -139,4 +138,3 @@ export default function PromptLibraryDialog({ open, onOpenChange }: PromptLibrar
 		</Dialog>
 	);
 }
-

@@ -11,10 +11,7 @@ function sanitizeFilename(name: string): string {
 		.slice(0, 200);
 }
 
-function flattenTree(
-	nodes: FolderTreeNode[],
-	basePath: string = ""
-): ExportedFile[] {
+function flattenTree(nodes: FolderTreeNode[], basePath: string = ""): ExportedFile[] {
 	const files: ExportedFile[] = [];
 
 	for (const node of nodes) {
@@ -41,10 +38,7 @@ export function treeToFileList(roots: FolderTreeNode[]): ExportedFile[] {
 	return flattenTree(roots);
 }
 
-export async function writeExportFiles(
-	buildDir: string,
-	files: ExportedFile[]
-): Promise<void> {
+export async function writeExportFiles(buildDir: string, files: ExportedFile[]): Promise<void> {
 	const createdDirs = new Set<string>();
 
 	for (const file of files) {

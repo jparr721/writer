@@ -1,5 +1,12 @@
 import { z } from "zod";
-import type { Document, DocumentDraft, Workspace } from "@/lib/db/schema";
+import type {
+	ConsistencyCheck,
+	Document,
+	DocumentDraft,
+	DocumentSummary,
+	HelpSuggestion,
+	Workspace,
+} from "@/lib/db/schema";
 
 export const documentIdParamsSchema = z.object({
 	id: z.uuid(),
@@ -54,3 +61,84 @@ export type ExportDocumentResponse = SuccessResponse & {
 	filename: string;
 	path: string;
 };
+
+// AI Tools Schemas
+
+// Editor Pass
+export const editorPassBodySchema = z.object({
+	documentId: z.uuid(),
+	content: z.string(),
+	promptContent: z.string(),
+});
+
+export type EditorPassBody = z.infer<typeof editorPassBodySchema>;
+export type EditorPassResponse = {
+	editedContent: string;
+	draftId: string;
+};
+
+// Helper
+export const helperBodySchema = z.object({
+	documentId: z.uuid(),
+	content: z.string(),
+	bookContext: z.string().optional(),
+	specificRequests: z.string().optional(),
+	promptContent: z.string(),
+});
+
+export type HelperBody = z.infer<typeof helperBodySchema>;
+export type HelperResponse = {
+	suggestionId: string;
+	response: string;
+};
+
+// Checker
+export const checkerBodySchema = z.object({
+	documentId: z.uuid(),
+	content: z.string(),
+	promptContent: z.string(),
+});
+
+export const consistencyCheckItemSchema = z.object({
+	line: z.number(),
+	original: z.string(),
+	fixed: z.string(),
+	type: z.enum(["punctuation", "repetition", "tense"]),
+});
+
+export type CheckerBody = z.infer<typeof checkerBodySchema>;
+export type ConsistencyCheckItem = z.infer<typeof consistencyCheckItemSchema>;
+export type CheckerResponse = {
+	checks: ConsistencyCheckItem[];
+	draftId: string;
+};
+
+// Document Summary
+export const upsertSummaryBodySchema = z.object({
+	summary: z.string(),
+});
+
+export type UpsertSummaryBody = z.infer<typeof upsertSummaryBodySchema>;
+export type DocumentSummaryResponse = DocumentSummary;
+
+// Help Suggestion
+export const updateHelpSuggestionBodySchema = z.object({
+	response: z.string().optional(),
+	completed: z.boolean().optional(),
+});
+
+export type UpdateHelpSuggestionBody = z.infer<typeof updateHelpSuggestionBodySchema>;
+export type HelpSuggestionResponse = HelpSuggestion;
+export type HelpSuggestionListResponse = HelpSuggestion[];
+
+// Consistency Check
+export type ConsistencyCheckResponse = ConsistencyCheck;
+export type ConsistencyCheckListResponse = ConsistencyCheck[];
+
+// Book Context
+export type BookContextItem = {
+	documentId: string;
+	title: string;
+	summary: string;
+};
+export type BookContextResponse = BookContextItem[];

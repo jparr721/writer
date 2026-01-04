@@ -1,12 +1,19 @@
 "use client";
 
-import { FileZipIcon, LibraryIcon, Moon02Icon, Settings02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
+import {
+	FileZipIcon,
+	LibraryIcon,
+	Moon02Icon,
+	Settings02Icon,
+	Sun03Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FolderUploadDialog from "@/components/folder-upload-dialog";
 import PromptLibraryDialog from "@/components/prompt-library-dialog";
+import { SidebarDocumentItem } from "@/components/sidebar/sidebar-document-item";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -190,21 +197,14 @@ export default function AppSidebar({
 					{isOpen && (
 						<div className="space-y-1">
 							{node.documents.map((doc) => (
-								<SidebarMenuItem key={doc.id}>
-									<SidebarMenuButton
-										asChild
-										isActive={doc.id === selectedId}
-										onClick={() => handleSelect(doc)}
-										className="justify-start"
-										style={{ paddingLeft: `${depth * 12 + 24}px` }}
-									>
-										<button className="w-full text-left">
-											<div className="flex flex-col">
-												<span>{doc.title || "Untitled"}</span>
-											</div>
-										</button>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
+								<SidebarDocumentItem
+									key={doc.id}
+									doc={doc}
+									workspaceId={workspaceId!}
+									selectedId={selectedId}
+									onSelect={handleSelect}
+									paddingLeft={depth * 12 + 24}
+								/>
 							))}
 							{node.folders.map((child) => renderFolder(child, depth + 1))}
 						</div>
@@ -212,7 +212,7 @@ export default function AppSidebar({
 				</div>
 			);
 		},
-		[handleSelect, openFolders, selectedId, toggleFolder]
+		[handleSelect, openFolders, selectedId, toggleFolder, workspaceId]
 	);
 
 	return (
@@ -226,18 +226,14 @@ export default function AppSidebar({
 					<SidebarMenu>
 						{tree.roots.map((folder) => renderFolder(folder))}
 						{tree.rootDocuments.map((doc) => (
-							<SidebarMenuItem key={doc.id}>
-								<SidebarMenuButton
-									asChild
-									isActive={doc.id === selectedId}
-									onClick={() => handleSelect(doc)}
-									className="justify-start"
-								>
-									<div className="flex flex-col">
-										<span>{doc.title || "Untitled"}</span>
-									</div>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
+							<SidebarDocumentItem
+								key={doc.id}
+								doc={doc}
+								workspaceId={workspaceId!}
+								selectedId={selectedId}
+								onSelect={handleSelect}
+								paddingLeft={12}
+							/>
 						))}
 						{!tree.roots.length && !tree.rootDocuments.length && !isLoading && (
 							<SidebarMenuItem>

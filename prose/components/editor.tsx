@@ -35,6 +35,8 @@ type EditorProps = {
 	pdfBlob?: Blob | null;
 	isCompiling?: boolean;
 	compileError?: Error | null;
+	workspaceId?: string;
+	documentId?: string;
 };
 
 export default function Editor({
@@ -49,6 +51,8 @@ export default function Editor({
 	pdfBlob,
 	isCompiling,
 	compileError,
+	workspaceId,
+	documentId,
 }: EditorProps) {
 	const [localSaving, setLocalSaving] = useState(false);
 	const [viewMode, setViewMode] = useState<ViewMode>("split");
@@ -81,14 +85,14 @@ export default function Editor({
 	};
 
 	return (
-		<div className="flex flex-1 flex-col min-h-0 gap-3 p-4">
+		<div className="flex flex-1 flex-col min-h-0 gap-3">
 			<div className="flex items-center justify-between gap-3">
 				<div>
 					<p className="text-xs text-muted-foreground">Editing</p>
 					<h2 className="text-lg font-semibold leading-tight">{title ?? "Untitled"}</h2>
 				</div>
 				<div className="flex gap-2">
-					<div className="flex rounded-md border p-0.5">
+					<div className="flex">
 						<Button
 							variant={viewMode === "editor" ? "secondary" : "ghost"}
 							size="icon"
@@ -146,11 +150,9 @@ export default function Editor({
 					)}
 				</div>
 			</div>
-			<div className="flex flex-1 min-h-0 gap-2">
+			<div className="flex flex-1 min-h-0 ">
 				{viewMode !== "pdf" && (
-					<div
-						className={`min-h-0 rounded-md border overflow-y-auto ${viewMode === "split" ? "w-1/2" : "w-full"}`}
-					>
+					<div className={`min-h-0 overflow-y-auto ${viewMode === "split" ? "w-1/2" : "w-full"}`}>
 						<CodeMirror
 							ref={editorRef}
 							value={value}
@@ -164,9 +166,7 @@ export default function Editor({
 					</div>
 				)}
 				{viewMode !== "editor" && (
-					<div
-						className={`min-h-0 rounded-md border overflow-hidden ${viewMode === "split" ? "w-1/2" : "w-full"}`}
-					>
+					<div className={`min-h-0 overflow-hidden ${viewMode === "split" ? "w-1/2" : "w-full"}`}>
 						<PdfPreview
 							pdfBlob={pdfBlob ?? null}
 							isLoading={isCompiling ?? false}
@@ -175,9 +175,19 @@ export default function Editor({
 					</div>
 				)}
 			</div>
-			<div className="flex flex-col gap-3">
-				<AIPanel />
-			</div>
+			{workspaceId && documentId && (
+				<div className="flex flex-col">
+					<AIPanel
+						workspaceId={workspaceId}
+						documentId={documentId}
+						content={value}
+						baseContent={baseValue ?? ""}
+						hasDraftChanges={hasDiff}
+						onContentChange={onChange}
+						onSaveAndContinue={handleSave}
+					/>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -31,10 +31,7 @@ export async function POST(
 		const result = await runCompilationPipeline(workspaceId);
 
 		if (!result.success) {
-			return NextResponse.json(
-				{ error: result.error, log: result.log },
-				{ status: 422 }
-			);
+			return NextResponse.json({ error: result.error, log: result.log }, { status: 422 });
 		}
 
 		// Return PDF binary
@@ -48,9 +45,6 @@ export async function POST(
 		});
 	} catch (error) {
 		console.error("Compilation failed:", error);
-		return NextResponse.json(
-			{ error: "Internal compilation error" },
-			{ status: 500 }
-		);
+		return NextResponse.json({ error: "Internal compilation error" }, { status: 500 });
 	}
 }

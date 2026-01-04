@@ -16,10 +16,7 @@ type DocumentRow = {
 	folderId: string | null;
 };
 
-function buildTree(
-	folderRows: FolderRow[],
-	documentRows: DocumentRow[]
-): FolderTreeNode[] {
+function buildTree(folderRows: FolderRow[], documentRows: DocumentRow[]): FolderTreeNode[] {
 	const folderMap = new Map<string, FolderTreeNode>();
 
 	// Create folder nodes
@@ -99,9 +96,7 @@ function buildTree(
 	return roots;
 }
 
-export async function fetchWorkspaceTree(
-	workspaceId: string
-): Promise<FolderTreeNode[]> {
+export async function fetchWorkspaceTree(workspaceId: string): Promise<FolderTreeNode[]> {
 	const [folderRows, documentRows] = await Promise.all([
 		db.select().from(folders).where(eq(folders.workspaceId, workspaceId)),
 		db
