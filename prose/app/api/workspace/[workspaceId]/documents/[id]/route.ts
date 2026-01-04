@@ -9,7 +9,7 @@ import {
 	updateDocumentBodySchema,
 } from "@/app/api/schemas";
 import { db } from "@/lib/db";
-import { documents, workspaces } from "@/lib/db/schema";
+import { documents } from "@/lib/db/schema";
 
 const paramsSchema = z.object({
 	workspaceId: z.uuid(),
@@ -21,17 +21,6 @@ type RouteParams = { params: Promise<DocumentIdParams & { workspaceId: string }>
 export async function GET(_request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId, id } = paramsSchema.parse(await params);
-
-		const [workspace] = await db
-			.select({ id: workspaces.id })
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
-			.limit(1);
-		if (!workspace) {
-			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
 
 		const [document] = await db
 			.select()
@@ -63,17 +52,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId, id } = paramsSchema.parse(await params);
 		const body = updateDocumentBodySchema.parse(await request.json());
-
-		const [workspace] = await db
-			.select({ id: workspaces.id })
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
-			.limit(1);
-		if (!workspace) {
-			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
 
 		const updates: { title?: string; content?: string; updatedAt: Date } = {
 			updatedAt: new Date(),
@@ -116,17 +94,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
 export async function DELETE(_request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId, id } = paramsSchema.parse(await params);
-
-		const [workspace] = await db
-			.select({ id: workspaces.id })
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
-			.limit(1);
-		if (!workspace) {
-			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
 
 		const [deletedDocument] = await db
 			.delete(documents)

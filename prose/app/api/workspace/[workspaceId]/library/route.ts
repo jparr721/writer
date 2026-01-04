@@ -2,7 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { documents, folders, workspaces } from "@/lib/db/schema";
+import { documents, folders } from "@/lib/db/schema";
 
 const workspaceParamsSchema = z.object({
 	workspaceId: z.uuid(),
@@ -14,15 +14,6 @@ export async function GET(
 ) {
 	try {
 		const { workspaceId } = workspaceParamsSchema.parse(await params);
-
-		const [workspace] = await db
-			.select({ id: workspaces.id })
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
-			.limit(1);
-		if (!workspace) {
-			return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-		}
 
 		const [folderRows, documentRows] = await Promise.all([
 			db.select().from(folders).where(eq(folders.workspaceId, workspaceId)),

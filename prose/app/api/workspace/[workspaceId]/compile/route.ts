@@ -1,8 +1,6 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { workspaces } from "@/lib/db/schema";
 import { runCompilationPipeline } from "@/lib/latex";
 
 const paramsSchema = z.object({
@@ -15,17 +13,6 @@ export async function POST(
 ) {
 	try {
 		const { workspaceId } = paramsSchema.parse(await params);
-
-		// Verify workspace exists
-		const [workspace] = await db
-			.select({ id: workspaces.id })
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
-			.limit(1);
-
-		if (!workspace) {
-			return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-		}
 
 		// Run compilation pipeline
 		const result = await runCompilationPipeline(workspaceId);

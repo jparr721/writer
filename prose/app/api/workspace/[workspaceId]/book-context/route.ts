@@ -7,7 +7,7 @@ import {
 	type ErrorResponse,
 } from "@/app/api/schemas";
 import { db } from "@/lib/db";
-import { documentSummaries, documents, workspaces } from "@/lib/db/schema";
+import { documentSummaries, documents } from "@/lib/db/schema";
 
 type RouteParams = { params: Promise<{ workspaceId: string }> };
 
@@ -18,18 +18,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
 			.extend({ workspaceId: documentIdParamsSchema.shape.id })
 			.transform((val) => ({ workspaceId: val.workspaceId }))
 			.parse({ workspaceId: (await params).workspaceId, id: (await params).workspaceId });
-
-		const [workspace] = await db
-			.select({ id: workspaces.id })
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
-			.limit(1);
-
-		if (!workspace) {
-			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
 
 		// Get all documents with their summaries
 		const docsWithSummaries = await db

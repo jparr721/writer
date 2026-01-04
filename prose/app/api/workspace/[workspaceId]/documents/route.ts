@@ -8,7 +8,7 @@ import {
 	type ErrorResponse,
 } from "@/app/api/schemas";
 import { db } from "@/lib/db";
-import { documents, workspaces } from "@/lib/db/schema";
+import { documents } from "@/lib/db/schema";
 
 const workspaceParamsSchema = z.object({
 	workspaceId: z.uuid(),
@@ -20,17 +20,6 @@ export async function GET(
 ) {
 	try {
 		const { workspaceId } = workspaceParamsSchema.parse(await params);
-
-		const [workspace] = await db
-			.select({ id: workspaces.id })
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
-			.limit(1);
-		if (!workspace) {
-			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
 
 		const allDocuments = await db
 			.select()
@@ -54,17 +43,6 @@ export async function POST(
 	try {
 		const { workspaceId } = workspaceParamsSchema.parse(await params);
 		const body = createDocumentBodySchema.parse(await request.json());
-
-		const [workspace] = await db
-			.select({ id: workspaces.id })
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
-			.limit(1);
-		if (!workspace) {
-			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
 
 		const [newDocument] = await db
 			.insert(documents)

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useEditorPass } from "@/hooks/use-ai-tools";
 import { usePrompts } from "@/hooks/use-prompts";
 import { DraftWarningDialog } from "./draft-warning-dialog";
+import { Spinner } from "../ui/spinner";
 
 type EditorPassSectionProps = {
 	workspaceId: string;
@@ -67,10 +68,7 @@ export function EditorPassSection({
 				</div>
 				<Button onClick={handleRunEditorPass} disabled={editorPass.isPending} size="sm">
 					{editorPass.isPending ? (
-						<>
-							<HugeiconsIcon icon={Loading03Icon} className="mr-2 size-4 animate-spin" />
-							Running...
-						</>
+						<Spinner />
 					) : (
 						"Run"
 					)}

@@ -3,7 +3,7 @@
 import type { PromptLibrary } from "./types";
 
 export const defaultPrompts: PromptLibrary = {
-	editor: `You're an experienced editor, working with a publisher looking for new material. You receive the attached chapter from a novel. What are your thoughts on the flow, the concept, evaluate flow, pacing, repetition, etc. Respond with a modified version that maintains several crucial components:
+	editor: `You're an experienced editor, working with a publisher looking for new material. You receive the attached chapter from a novel. What are your thoughts on the flow, the concept, evaluate flow, pacing, repetition, etc. Respond with a complete modified version that maintains several crucial components:
 
 1. You make the minimum number of possible edits to the overall story and flow.
 2. You ALWAYS maintain the latex styling. Instead of "word" you use \`word''.

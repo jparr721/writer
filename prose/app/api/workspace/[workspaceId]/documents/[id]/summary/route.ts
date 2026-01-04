@@ -8,46 +8,15 @@ import {
 	upsertSummaryBodySchema,
 } from "@/app/api/schemas";
 import { db } from "@/lib/db";
-import { documentSummaries, documents, workspaces } from "@/lib/db/schema";
+import { documentSummaries } from "@/lib/db/schema";
 
 type RouteParams = { params: Promise<{ workspaceId: string; id: string }> };
-
-async function ensureWorkspaceAndDocument(workspaceId: string, documentId: string) {
-	const [workspace] = await db
-		.select({ id: workspaces.id })
-		.from(workspaces)
-		.where(eq(workspaces.id, workspaceId))
-		.limit(1);
-
-	if (!workspace) {
-		return { error: "Workspace not found" } as const;
-	}
-
-	const [document] = await db
-		.select({ id: documents.id })
-		.from(documents)
-		.where(and(eq(documents.workspaceId, workspaceId), eq(documents.id, documentId)))
-		.limit(1);
-
-	if (!document) {
-		return { error: "Document not found" } as const;
-	}
-
-	return { workspace, document } as const;
-}
 
 export async function GET(_request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId, id } = documentIdParamsSchema
 			.extend({ workspaceId: documentIdParamsSchema.shape.id })
 			.parse(await params);
-
-		const validation = await ensureWorkspaceAndDocument(workspaceId, id);
-		if ("error" in validation) {
-			return NextResponse.json({ error: validation.error } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
 
 		const [summary] = await db
 			.select()
@@ -78,13 +47,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
 			.extend({ workspaceId: documentIdParamsSchema.shape.id })
 			.parse(await params);
 		const body = upsertSummaryBodySchema.parse(await request.json());
-
-		const validation = await ensureWorkspaceAndDocument(workspaceId, id);
-		if ("error" in validation) {
-			return NextResponse.json({ error: validation.error } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
 
 		const now = new Date();
 

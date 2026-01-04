@@ -10,7 +10,7 @@ import {
 } from "@/app/api/schemas";
 import AiGenerator from "@/lib/ai/ai-generator";
 import { db } from "@/lib/db";
-import { consistencyChecks, documentDrafts, documents, workspaces } from "@/lib/db/schema";
+import { consistencyChecks, documentDrafts } from "@/lib/db/schema";
 
 type RouteParams = { params: Promise<{ workspaceId: string }> };
 
@@ -33,32 +33,6 @@ export async function POST(request: Request, { params }: RouteParams) {
 		const { workspaceId } = await params;
 		const body = checkerBodySchema.parse(await request.json());
 		const { documentId, content, promptContent } = body;
-
-		// Validate workspace
-		const [workspace] = await db
-			.select({ id: workspaces.id })
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
-			.limit(1);
-
-		if (!workspace) {
-			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
-
-		// Validate document
-		const [document] = await db
-			.select({ id: documents.id })
-			.from(documents)
-			.where(and(eq(documents.workspaceId, workspaceId), eq(documents.id, documentId)))
-			.limit(1);
-
-		if (!document) {
-			return NextResponse.json({ error: "Document not found" } satisfies ErrorResponse, {
-				status: 404,
-			});
-		}
 
 		// Ensure we have a draft to attach checks to
 		const now = new Date();
