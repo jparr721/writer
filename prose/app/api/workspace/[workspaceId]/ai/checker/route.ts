@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 import {
 	type CheckerResponse,
 	type ConsistencyCheckItem,
@@ -15,17 +15,16 @@ import { consistencyChecks, documentDrafts } from "@/lib/db/schema";
 type RouteParams = { params: Promise<{ workspaceId: string }> };
 
 function parseCheckerResponse(response: string): ConsistencyCheckItem[] {
-	// Try to extract JSON array from response
-	const jsonMatch = response.match(/\[[\s\S]*\]/);
-	if (!jsonMatch) return [];
-
-	try {
-		const parsed = JSON.parse(jsonMatch[0]);
-		return consistencyCheckItemSchema.array().parse(parsed);
-	} catch {
-		console.error("Failed to parse checker response");
+	const parsed = z
+		.object({
+			checks: consistencyCheckItemSchema.array(),
+		})
+		.safeParse(response);
+	if (!parsed.success) {
+		console.error("Failed to parse checker response", parsed.error);
 		return [];
 	}
+	return parsed.data.checks;
 }
 
 export async function POST(request: Request, { params }: RouteParams) {

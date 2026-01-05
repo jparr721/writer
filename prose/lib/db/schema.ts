@@ -134,6 +134,7 @@ export const consistencyCheckTypeEnum = pgEnum("consistency_check_type", [
 	"punctuation",
 	"repetition",
 	"tense",
+	"combined",
 ]);
 
 // Consistency Checks - stores checker AI results tied to drafts

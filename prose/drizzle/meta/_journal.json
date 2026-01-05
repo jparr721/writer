@@ -22,6 +22,13 @@
 			"when": 1767484892921,
 			"tag": "0002_curvy_the_enforcers",
 			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1767570105474,
+			"tag": "0003_wise_vindicator",
+			"breakpoints": true
 		}
 	]
 }

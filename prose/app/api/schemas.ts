@@ -103,7 +103,7 @@ export const consistencyCheckItemSchema = z.object({
 	line: z.number(),
 	original: z.string(),
 	fixed: z.string(),
-	type: z.enum(["punctuation", "repetition", "tense"]),
+	type: z.enum(["punctuation", "repetition", "tense", "combined"]),
 });
 
 export type CheckerBody = z.infer<typeof checkerBodySchema>;

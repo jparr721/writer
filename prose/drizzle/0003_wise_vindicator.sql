@@ -1,0 +1,1 @@
+ALTER TYPE "public"."consistency_check_type" ADD VALUE 'combined';

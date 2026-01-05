@@ -6,8 +6,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useEditorPass } from "@/hooks/use-ai-tools";
 import { usePrompts } from "@/hooks/use-prompts";
-import { DraftWarningDialog } from "./draft-warning-dialog";
 import { Spinner } from "../ui/spinner";
+import { DraftWarningDialog } from "./draft-warning-dialog";
 
 type EditorPassSectionProps = {
 	workspaceId: string;
@@ -67,11 +67,7 @@ export function EditorPassSection({
 					<span className="text-sm font-medium">Editor Pass</span>
 				</div>
 				<Button onClick={handleRunEditorPass} disabled={editorPass.isPending} size="sm">
-					{editorPass.isPending ? (
-						<Spinner />
-					) : (
-						"Run"
-					)}
+					{editorPass.isPending ? <Spinner /> : "Run"}
 				</Button>
 			</div>
 

@@ -6,9 +6,12 @@ export const defaultPrompts: PromptLibrary = {
 	editor: `You're an experienced editor, working with a publisher looking for new material. You receive the attached chapter from a novel. What are your thoughts on the flow, the concept, evaluate flow, pacing, repetition, etc. Respond with a complete modified version that maintains several crucial components:
 
 1. You make the minimum number of possible edits to the overall story and flow.
-2. You ALWAYS maintain the latex styling. Instead of "word" you use \`word''.
+2. You ALWAYS maintain the latex styling. Instead of "word" with normal quotes, you use \`\`word''.
 3. If you use an em-dash, ensure it is always done as --- instead of the unicode.
-4. If you think the phrasing of a passage can be improved, always check with me first.`,
+4. If you think the phrasing of a passage can be improved, always check with me first.
+
+***IMPORANT***
+Your editor summary must include the entire input document with your changes applied to it. Please do not include any additional commentary, explanations, etc. You will just return the modified document.`,
 
 	helper: `You are an experienced developmental editor and story architect working with an author on a long-form novel. You receive the attached chapter as input, along with broader context about the book so far.
 
@@ -88,7 +91,7 @@ Output format - return ONLY a JSON array of fixes:
     "line": <line_number>,
     "original": "<original_text>",
     "fixed": "<corrected_text>",
-    "type": "punctuation" | "repetition" | "tense"
+    "type": "punctuation" | "repetition" | "tense" | "combined"
   }
 ]
 
@@ -96,7 +99,8 @@ Rules:
 - Do NOT add commentary or explanations
 - Do NOT suggest style improvements
 - Do NOT change word choice beyond fixing repetition
-- Preserve all LaTeX formatting (use \`word'' not "word")
+- Preserve all LaTeX formatting (use \`\`word'' not "word")
 - Use --- for em-dashes, not unicode
-- If no fixes needed, return empty array: []`,
+- If no fixes needed, return empty array: []
+- If multiple fixes apply to the same line, merge them into one fix object with type "combined"`,
 };
