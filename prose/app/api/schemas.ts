@@ -126,6 +126,21 @@ export type SummarizeResponse = {
 	summaryId: string;
 };
 
+// Rewriter
+export const rewriterBodySchema = z.object({
+	documentId: z.uuid(),
+	selectedText: z.string(),
+	instructions: z.string(),
+	bookContext: z.string(),
+	currentChapter: z.string(),
+	promptContent: z.string(),
+});
+
+export type RewriterBody = z.infer<typeof rewriterBodySchema>;
+export type RewriterResponse = {
+	rewrittenText: string;
+};
+
 // Document Summary
 export const upsertSummaryBodySchema = z.object({
 	summary: z.string(),

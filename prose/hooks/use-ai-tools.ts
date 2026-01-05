@@ -6,6 +6,7 @@ import type {
 	ConsistencyCheckItem,
 	EditorPassResponse,
 	HelperResponse,
+	RewriterResponse,
 	SummarizeResponse,
 } from "@/app/api/schemas";
 import type { ConsistencyCheck, DocumentSummary, HelpSuggestion } from "@/lib/db/schema";
@@ -98,6 +99,33 @@ export function useChecker(workspaceId: string | null | undefined) {
 		},
 		onError: (error) => {
 			console.error("Error checking document:", error);
+		},
+	});
+}
+
+// Rewriter
+export function useRewriter(workspaceId: string | null | undefined) {
+	return useMutation({
+		mutationFn: async ({
+			documentId,
+			selectedText,
+			instructions,
+			bookContext,
+			currentChapter,
+			promptContent,
+		}: {
+			documentId: string;
+			selectedText: string;
+			instructions: string;
+			bookContext: string;
+			currentChapter: string;
+			promptContent: string;
+		}) => {
+			const { data } = await axios.post<RewriterResponse>(
+				`/api/workspace/${workspaceId}/ai/rewriter`,
+				{ documentId, selectedText, instructions, bookContext, currentChapter, promptContent }
+			);
+			return data;
 		},
 	});
 }

@@ -30,9 +30,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 			.from(bookFiles)
 			.innerJoin(documents, eq(bookFiles.documentId, documents.id))
 			.innerJoin(documentSummaries, eq(documents.id, documentSummaries.documentId))
-			.where(
-				and(eq(bookFiles.workspaceId, workspaceId), eq(bookFiles.nodeType, "chapter"))
-			)
+			.where(and(eq(bookFiles.workspaceId, workspaceId), eq(bookFiles.nodeType, "chapter")))
 			.orderBy(asc(bookFiles.position));
 
 		return NextResponse.json<BookContextResponse>(bookContext);

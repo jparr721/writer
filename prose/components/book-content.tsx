@@ -296,11 +296,7 @@ export default function BookContent({ workspaceId }: BookContentProps) {
 						: `Generate Summaries${selectedWithoutSummary > 0 ? ` (${selectedWithoutSummary})` : ""}`}
 				</Button>
 				<Button variant="outline" onClick={handleSaveOrder} disabled={!hasChanges || isSaving}>
-					{isSaving ? (
-						<Spinner />
-					) : (
-						"Save Order"
-					)}
+					{isSaving ? <Spinner /> : "Save Order"}
 				</Button>
 			</div>
 
@@ -345,11 +341,7 @@ export default function BookContent({ workspaceId }: BookContentProps) {
 							Cancel
 						</Button>
 						<Button onClick={handleSaveSummary} disabled={isSavingSummary}>
-							{isSavingSummary ? (
-								<Spinner />
-							) : (
-								"Save"
-							)}
+							{isSavingSummary ? <Spinner /> : "Save"}
 						</Button>
 					</SheetFooter>
 				</SheetContent>

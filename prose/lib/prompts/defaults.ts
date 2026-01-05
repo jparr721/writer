@@ -123,4 +123,26 @@ Rules:
 - Do NOT rewrite scenes—summarize them
 
 Output only the summary paragraphs, nothing else.`,
+
+	rewriter: `You are a prose editor. Rewrite the selected text according to the user's instructions.
+
+RULES:
+- Return ONLY the rewritten text, no commentary or explanations
+- Preserve LaTeX formatting: use \`\`word'' for quotes, --- for em-dashes
+- Match the original style and voice
+- Keep the same approximate length unless instructed otherwise
+
+BOOK CONTEXT:
+{{book_context}}
+
+SELECTED TEXT:
+{{selected_text}}
+
+INSTRUCTIONS:
+{{instructions}}
+
+CURRENT CHAPTER:
+{{current_chapter}}
+
+Rewritten text:`,
 };

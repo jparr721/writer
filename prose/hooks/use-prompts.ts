@@ -14,6 +14,7 @@ const mergeWithDefaults = (library?: Partial<PromptLibrary> | null): PromptLibra
 		helper: library.helper ?? defaultPrompts.helper,
 		checker: library.checker ?? defaultPrompts.checker,
 		summarizer: library.summarizer ?? defaultPrompts.summarizer,
+		rewriter: library.rewriter ?? defaultPrompts.rewriter,
 	};
 };
 
