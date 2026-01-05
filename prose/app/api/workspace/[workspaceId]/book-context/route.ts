@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import {
@@ -7,7 +7,7 @@ import {
 	type ErrorResponse,
 } from "@/app/api/schemas";
 import { db } from "@/lib/db";
-import { documentSummaries, documents } from "@/lib/db/schema";
+import { bookFiles, documentSummaries, documents } from "@/lib/db/schema";
 
 type RouteParams = { params: Promise<{ workspaceId: string }> };
 
@@ -19,25 +19,21 @@ export async function GET(_request: Request, { params }: RouteParams) {
 			.transform((val) => ({ workspaceId: val.workspaceId }))
 			.parse({ workspaceId: (await params).workspaceId, id: (await params).workspaceId });
 
-		// Get all documents with their summaries
-		const docsWithSummaries = await db
+		// Get chapter documents with summaries, ordered by book position
+		const bookContext: BookContextResponse = await db
 			.select({
 				documentId: documents.id,
 				title: documents.title,
 				summary: documentSummaries.summary,
+				position: bookFiles.position,
 			})
-			.from(documents)
-			.leftJoin(documentSummaries, eq(documents.id, documentSummaries.documentId))
-			.where(eq(documents.workspaceId, workspaceId));
-
-		// Filter to only those with summaries
-		const bookContext: BookContextResponse = docsWithSummaries
-			.filter((doc) => doc.summary !== null)
-			.map((doc) => ({
-				documentId: doc.documentId,
-				title: doc.title,
-				summary: doc.summary as string,
-			}));
+			.from(bookFiles)
+			.innerJoin(documents, eq(bookFiles.documentId, documents.id))
+			.innerJoin(documentSummaries, eq(documents.id, documentSummaries.documentId))
+			.where(
+				and(eq(bookFiles.workspaceId, workspaceId), eq(bookFiles.nodeType, "chapter"))
+			)
+			.orderBy(asc(bookFiles.position));
 
 		return NextResponse.json<BookContextResponse>(bookContext);
 	} catch (error) {

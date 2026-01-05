@@ -153,6 +153,7 @@ export type BookContextItem = {
 	documentId: string;
 	title: string;
 	summary: string;
+	position: number;
 };
 export type BookContextResponse = BookContextItem[];
 
