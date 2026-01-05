@@ -132,10 +132,29 @@ function DialogDescription({
 	);
 }
 
+function DialogContentFullscreen({
+	className,
+	children,
+	...props
+}: React.ComponentProps<typeof DialogContent>) {
+	return (
+		<DialogContent
+			className={cn(
+				"w-[90vw] max-w-[90vw] sm:max-w-[90vw] max-h-[80vh] overflow-hidden flex flex-col",
+				className
+			)}
+			{...props}
+		>
+			{children}
+		</DialogContent>
+	);
+}
+
 export {
 	Dialog,
 	DialogClose,
 	DialogContent,
+	DialogContentFullscreen,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,

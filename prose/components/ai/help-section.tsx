@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
-	DialogContent,
+	DialogContentFullscreen,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
@@ -74,7 +74,7 @@ function HelpInputDialog({
 					Get Help
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw] max-h-[80vh]">
+			<DialogContentFullscreen>
 				<DialogHeader>
 					<DialogTitle>Get Writing Help</DialogTitle>
 					<DialogDescription>
@@ -111,7 +111,7 @@ function HelpInputDialog({
 						)}
 					</Button>
 				</div>
-			</DialogContent>
+			</DialogContentFullscreen>
 		</Dialog>
 	);
 }
@@ -145,7 +145,7 @@ function HelpResultsDialog({
 
 	return (
 		<Dialog open onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw] max-h-[80vh]">
+			<DialogContentFullscreen>
 				<DialogHeader>
 					<DialogTitle>Writing Suggestion</DialogTitle>
 					<DialogDescription>
@@ -213,7 +213,7 @@ function HelpResultsDialog({
 					</Button>
 					<Button onClick={onClose}>Close</Button>
 				</div>
-			</DialogContent>
+			</DialogContentFullscreen>
 		</Dialog>
 	);
 }

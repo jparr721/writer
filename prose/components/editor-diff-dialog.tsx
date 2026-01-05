@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
-	DialogContent,
+	DialogContentFullscreen,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
@@ -51,7 +51,7 @@ export function EditorDiffDialog({
 					Diff
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw] max-h-[80vh]">
+			<DialogContentFullscreen>
 				<DialogHeader>
 					<DialogTitle>Changes</DialogTitle>
 					<DialogDescription>Comparing saved content to your current draft.</DialogDescription>
@@ -81,7 +81,7 @@ export function EditorDiffDialog({
 						</Button>
 					</div>
 				)}
-			</DialogContent>
+			</DialogContentFullscreen>
 		</Dialog>
 	);
 }

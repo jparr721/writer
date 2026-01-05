@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	Book02Icon,
 	FileZipIcon,
 	LibraryIcon,
 	Moon02Icon,
@@ -11,6 +12,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import BookSetupDialog from "@/components/book-setup-dialog";
+import BookViewDialog from "@/components/book-view-dialog";
 import FolderUploadDialog from "@/components/folder-upload-dialog";
 import PromptLibraryDialog from "@/components/prompt-library-dialog";
 import { SidebarDocumentItem } from "@/components/sidebar/sidebar-document-item";
@@ -63,6 +66,7 @@ export default function AppSidebar({
 	const [mounted, setMounted] = useState(false);
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
 	const [promptLibraryOpen, setPromptLibraryOpen] = useState(false);
+	const [bookViewOpen, setBookViewOpen] = useState(false);
 	const prevSelectedId = useRef<string | undefined>(undefined);
 
 	// Avoid hydration mismatch for theme
@@ -219,7 +223,11 @@ export default function AppSidebar({
 		<Sidebar collapsible="offExamples" {...props}>
 			<SidebarContent>
 				<div className="flex flex-col gap-2 p-3">
-					<FolderUploadDialog workspaceId={workspaceId} />
+					{library && library.documents.length > 0 ? (
+						<BookSetupDialog workspaceId={workspaceId!} documents={library.documents} />
+					) : (
+						<FolderUploadDialog workspaceId={workspaceId} />
+					)}
 					{isLoading && <p className="text-sm text-muted-foreground">Loading documents</p>}
 				</div>
 				<SidebarGroup>
@@ -280,6 +288,10 @@ export default function AppSidebar({
 									</DropdownMenuSubContent>
 								</DropdownMenuSub>
 								<DropdownMenuSeparator />
+								<DropdownMenuItem onClick={() => setBookViewOpen(true)}>
+									<HugeiconsIcon icon={Book02Icon} className="size-4" />
+									View Book
+								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleExportLibrary}>
 									<HugeiconsIcon icon={FileZipIcon} className="size-4" />
 									Export as Zip
@@ -290,6 +302,12 @@ export default function AppSidebar({
 				</SidebarMenu>
 			</SidebarFooter>
 			<PromptLibraryDialog open={promptLibraryOpen} onOpenChange={setPromptLibraryOpen} />
+			<BookViewDialog
+				open={bookViewOpen}
+				onOpenChange={setBookViewOpen}
+				workspaceId={workspaceId}
+				documents={library?.documents ?? []}
+			/>
 		</Sidebar>
 	);
 }

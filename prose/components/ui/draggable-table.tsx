@@ -11,6 +11,8 @@ import {
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
+import { DragDropIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
 	arrayMove,
@@ -63,7 +65,6 @@ function DraggableRow<TData>({
 		opacity: isDragging ? 0.8 : 1,
 		zIndex: isDragging ? 1 : 0,
 		position: "relative",
-		cursor: isDragging ? "grabbing" : "grab",
 	};
 
 	return (
@@ -72,15 +73,16 @@ function DraggableRow<TData>({
 			style={style}
 			data-state={isSelected ? "selected" : undefined}
 			{...attributes}
-			{...listeners}
 		>
+			<TableCell
+				className="w-8 cursor-grab"
+				style={{ cursor: isDragging ? "grabbing" : "grab" }}
+				{...listeners}
+			>
+				<HugeiconsIcon icon={DragDropIcon} className="size-4 text-muted-foreground" />
+			</TableCell>
 			<TableCell>
-				<Checkbox
-					checked={isSelected}
-					onCheckedChange={onToggleSelect}
-					onClick={(e) => e.stopPropagation()}
-					onPointerDown={(e) => e.stopPropagation()}
-				/>
+				<Checkbox checked={isSelected} onCheckedChange={onToggleSelect} />
 			</TableCell>
 			{row.getVisibleCells().map((cell) => (
 				<TableCell key={cell.id}>
@@ -158,6 +160,7 @@ function DraggableTable<TData>({
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id}>
+							<TableHead className="w-8" />
 							<TableHead>
 								<Checkbox checked={selectAllChecked} onCheckedChange={handleSelectAll} />
 							</TableHead>

@@ -137,6 +137,14 @@ export const consistencyCheckTypeEnum = pgEnum("consistency_check_type", [
 	"combined",
 ]);
 
+// Book file node type enum
+export const nodeTypeEnum = pgEnum("node_type", [
+	"chapter",
+	"appendix",
+	"frontmatter",
+	"backmatter",
+]);
+
 // Consistency Checks - stores checker AI results tied to drafts
 export const consistencyChecks = pgTable(
 	"consistency_checks",
@@ -161,6 +169,28 @@ export const consistencyChecks = pgTable(
 	(table) => [index("idx_consistency_checks_draft").on(table.draftId)]
 );
 
+// Book Files - ordered documents that form the book structure
+export const bookFiles = pgTable(
+	"book_files",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		workspaceId: uuid("workspace_id")
+			.notNull()
+			.references(() => workspaces.id, { onDelete: "cascade" }),
+		documentId: uuid("document_id")
+			.notNull()
+			.references(() => documents.id, { onDelete: "cascade" }),
+		nodeType: nodeTypeEnum("node_type").notNull(),
+		position: integer("position").notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+	},
+	(table) => [
+		uniqueIndex("idx_book_files_workspace_document").on(table.workspaceId, table.documentId),
+		index("idx_book_files_workspace_position").on(table.workspaceId, table.position),
+	]
+);
+
 export type Workspace = typeof workspaces.$inferSelect;
 export type NewWorkspace = typeof workspaces.$inferInsert;
 export type Document = typeof documents.$inferSelect;
@@ -175,3 +205,5 @@ export type HelpSuggestion = typeof helpSuggestions.$inferSelect;
 export type NewHelpSuggestion = typeof helpSuggestions.$inferInsert;
 export type ConsistencyCheck = typeof consistencyChecks.$inferSelect;
 export type NewConsistencyCheck = typeof consistencyChecks.$inferInsert;
+export type BookFile = typeof bookFiles.$inferSelect;
+export type NewBookFile = typeof bookFiles.$inferInsert;

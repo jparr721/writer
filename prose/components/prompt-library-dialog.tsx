@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
-	DialogContent,
+	DialogContentFullscreen,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
@@ -45,7 +45,7 @@ export default function PromptLibraryDialog({ open, onOpenChange }: PromptLibrar
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw] max-h-[80vh]">
+			<DialogContentFullscreen>
 				<DialogHeader>
 					<DialogTitle>Prompt Library</DialogTitle>
 					<DialogDescription>
@@ -84,7 +84,7 @@ export default function PromptLibraryDialog({ open, onOpenChange }: PromptLibrar
 						</div>
 					</TabsContent>
 				</Tabs>
-			</DialogContent>
+			</DialogContentFullscreen>
 		</Dialog>
 	);
 }

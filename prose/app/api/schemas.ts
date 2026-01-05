@@ -142,3 +142,23 @@ export type BookContextItem = {
 	summary: string;
 };
 export type BookContextResponse = BookContextItem[];
+
+// Book Files
+export const createBookBodySchema = z.object({
+	files: z.array(
+		z.object({
+			documentId: z.string().uuid(),
+			nodeType: z.enum(["chapter", "appendix", "frontmatter", "backmatter"]),
+			position: z.number().int().min(0),
+		})
+	),
+});
+
+export type CreateBookBody = z.infer<typeof createBookBodySchema>;
+export type BookFileResponse = {
+	id: string;
+	documentId: string;
+	nodeType: string;
+	position: number;
+};
+export type BookResponse = { files: BookFileResponse[] };

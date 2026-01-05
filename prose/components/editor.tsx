@@ -15,12 +15,14 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import CodeMirror, { EditorView, type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { latex } from "codemirror-lang-latex";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocalStorage } from "usehooks-ts";
 import { EditorDiffDialog } from "@/components/editor-diff-dialog";
 import { PdfPreview } from "@/components/pdf-preview";
 import { Button } from "@/components/ui/button";
 import { useWhisp } from "@/hooks/use-whisp";
 import AIPanel from "./ai-panel";
 
+const VIEW_MODE_KEY = "writer-view-mode";
 type ViewMode = "editor" | "split" | "pdf";
 
 type EditorProps = {
@@ -55,7 +57,7 @@ export default function Editor({
 	documentId,
 }: EditorProps) {
 	const [localSaving, setLocalSaving] = useState(false);
-	const [viewMode, setViewMode] = useState<ViewMode>("split");
+	const [viewMode, setViewMode] = useLocalStorage<ViewMode>(VIEW_MODE_KEY, "split");
 	const saving = isSaving ?? localSaving;
 	const editorRef = useRef<ReactCodeMirrorRef>(null);
 	const { isRecording, text, start, stop } = useWhisp();

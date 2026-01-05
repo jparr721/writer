@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
-	DialogContent,
+	DialogContentFullscreen,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
@@ -124,7 +124,7 @@ export default function FolderUploadDialog({ workspaceId }: FolderUploadDialogPr
 					Import Folder
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="w-[90vw] max-w-[80vw] sm:max-w-[80vw] lg:max-w-[80vw]">
+			<DialogContentFullscreen>
 				<DialogHeader>
 					<DialogTitle>Import folder</DialogTitle>
 					<DialogDescription>
@@ -211,7 +211,7 @@ export default function FolderUploadDialog({ workspaceId }: FolderUploadDialogPr
 						)}
 					</Button>
 				</DialogFooter>
-			</DialogContent>
+			</DialogContentFullscreen>
 		</Dialog>
 	);
 }
