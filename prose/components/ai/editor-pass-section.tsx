@@ -60,8 +60,8 @@ export function EditorPassSection({
 	};
 
 	return (
-		<div className="flex flex-col gap-2">
-			<div className="flex items-center justify-between">
+		<div className="flex flex-col gap-2 h-full min-h-0">
+			<div className="flex items-center justify-between shrink-0">
 				<div className="flex items-center gap-2">
 					<HugeiconsIcon icon={PencilEdit01Icon} className="size-4 text-muted-foreground" />
 					<span className="text-sm font-medium">Editor Pass</span>

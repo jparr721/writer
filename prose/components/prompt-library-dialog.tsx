@@ -61,6 +61,7 @@ export default function PromptLibraryDialog({ open, onOpenChange }: PromptLibrar
 						<TabsTrigger value="editor">Editor</TabsTrigger>
 						<TabsTrigger value="helper">Helper</TabsTrigger>
 						<TabsTrigger value="checker">Checker</TabsTrigger>
+						<TabsTrigger value="summarizer">Summarizer</TabsTrigger>
 					</TabsList>
 					<TabsContent value={activeCategory} className="flex flex-col gap-3">
 						<Textarea

@@ -9,14 +9,15 @@ import {
 	Sun03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BookSetupDialog from "@/components/book-setup-dialog";
-import BookViewDialog from "@/components/book-view-dialog";
 import FolderUploadDialog from "@/components/folder-upload-dialog";
 import PromptLibraryDialog from "@/components/prompt-library-dialog";
 import { SidebarDocumentItem } from "@/components/sidebar/sidebar-document-item";
+import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -29,6 +30,7 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useBook } from "@/hooks/use-book";
 import type { DocumentSummary } from "@/hooks/use-documents";
 import { useLibrary } from "@/hooks/use-library";
 import {
@@ -62,12 +64,15 @@ export default function AppSidebar({
 	...props
 }: AppSidebarProps) {
 	const { data: library, isLoading } = useLibrary(workspaceId);
+	const { data: book } = useBook(workspaceId);
 	const { theme, setTheme, resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
 	const [promptLibraryOpen, setPromptLibraryOpen] = useState(false);
-	const [bookViewOpen, setBookViewOpen] = useState(false);
 	const prevSelectedId = useRef<string | undefined>(undefined);
+
+	const hasDocuments = library && library.documents.length > 0;
+	const hasBook = book && book.files.length > 0;
 
 	// Avoid hydration mismatch for theme
 	useEffect(() => {
@@ -223,10 +228,14 @@ export default function AppSidebar({
 		<Sidebar collapsible="offExamples" {...props}>
 			<SidebarContent>
 				<div className="flex flex-col gap-2 p-3">
-					{library && library.documents.length > 0 ? (
+					{!hasDocuments ? (
+						<FolderUploadDialog workspaceId={workspaceId} />
+					) : !hasBook ? (
 						<BookSetupDialog workspaceId={workspaceId!} documents={library.documents} />
 					) : (
-						<FolderUploadDialog workspaceId={workspaceId} />
+						<Button asChild>
+							<Link href={`/workspace/${workspaceId}/book`}>Go to Book</Link>
+						</Button>
 					)}
 					{isLoading && <p className="text-sm text-muted-foreground">Loading documents</p>}
 				</div>
@@ -288,9 +297,11 @@ export default function AppSidebar({
 									</DropdownMenuSubContent>
 								</DropdownMenuSub>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => setBookViewOpen(true)}>
-									<HugeiconsIcon icon={Book02Icon} className="size-4" />
-									View Book
+								<DropdownMenuItem asChild>
+									<Link href={`/workspace/${workspaceId}/book`}>
+										<HugeiconsIcon icon={Book02Icon} className="size-4" />
+										View Book
+									</Link>
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleExportLibrary}>
 									<HugeiconsIcon icon={FileZipIcon} className="size-4" />
@@ -302,12 +313,6 @@ export default function AppSidebar({
 				</SidebarMenu>
 			</SidebarFooter>
 			<PromptLibraryDialog open={promptLibraryOpen} onOpenChange={setPromptLibraryOpen} />
-			<BookViewDialog
-				open={bookViewOpen}
-				onOpenChange={setBookViewOpen}
-				workspaceId={workspaceId}
-				documents={library?.documents ?? []}
-			/>
 		</Sidebar>
 	);
 }

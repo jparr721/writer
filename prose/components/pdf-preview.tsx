@@ -3,6 +3,7 @@
 import { Alert02Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useState } from "react";
+import { Spinner } from "./ui/spinner";
 
 type PdfPreviewProps = {
 	pdfBlob: Blob | null;
@@ -28,7 +29,7 @@ export function PdfPreview({ pdfBlob, isLoading, error }: PdfPreviewProps) {
 				<div className="flex items-center gap-2 text-muted-foreground">
 					<HugeiconsIcon icon={Loading03Icon} className="size-5 animate-spin" />
 					<span className="text-sm">
-						Compiling <HugeiconsIcon icon={Loading03Icon} className="size-5 animate-spin" />
+						<Spinner />
 					</span>
 				</div>
 			</div>

@@ -100,8 +100,8 @@ export function ConsistencyCheckSection({
 	const activeChecks = checks.filter((c) => !c.acknowledged);
 
 	return (
-		<div className="flex flex-col gap-2">
-			<div className="flex items-center justify-between">
+		<div className="flex flex-col gap-2 h-full min-h-0">
+			<div className="flex items-center justify-between shrink-0">
 				<div className="flex items-center gap-2">
 					<HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-4 text-muted-foreground" />
 					<span className="text-sm font-medium">Consistency Check</span>
@@ -124,7 +124,7 @@ export function ConsistencyCheckSection({
 			</div>
 
 			{activeChecks.length > 0 ? (
-				<div className="flex max-h-[200px] flex-col gap-1 overflow-y-auto">
+				<div className="flex flex-1 flex-col gap-1 overflow-y-auto min-h-0">
 					{activeChecks.map((check) => (
 						<ConsistencyCheckItem
 							key={check.id}

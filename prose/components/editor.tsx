@@ -19,6 +19,11 @@ import { useLocalStorage } from "usehooks-ts";
 import { EditorDiffDialog } from "@/components/editor-diff-dialog";
 import { PdfPreview } from "@/components/pdf-preview";
 import { Button } from "@/components/ui/button";
+import {
+	ResizableHandle,
+	ResizablePanel,
+	ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { useWhisp } from "@/hooks/use-whisp";
 import AIPanel from "./ai-panel";
 
@@ -87,109 +92,122 @@ export default function Editor({
 	};
 
 	return (
-		<div className="flex flex-1 flex-col min-h-0 gap-3">
-			<div className="flex items-center justify-between gap-3">
-				<div>
-					<p className="text-xs text-muted-foreground">Editing</p>
-					<h2 className="text-lg font-semibold leading-tight">{title ?? "Untitled"}</h2>
-				</div>
-				<div className="flex gap-2">
-					<div className="flex">
-						<Button
-							variant={viewMode === "editor" ? "secondary" : "ghost"}
-							size="icon"
-							className="size-7"
-							onClick={() => setViewMode("editor")}
-							title="Editor only"
-						>
-							<HugeiconsIcon icon={SourceCodeIcon} className="size-4" />
-						</Button>
-						<Button
-							variant={viewMode === "split" ? "secondary" : "ghost"}
-							size="icon"
-							className="size-7"
-							onClick={() => setViewMode("split")}
-							title="Split view"
-						>
-							<HugeiconsIcon icon={LeftToRightBlockQuoteIcon} className="size-4" />
-						</Button>
-						<Button
-							variant={viewMode === "pdf" ? "secondary" : "ghost"}
-							size="icon"
-							className="size-7"
-							onClick={() => setViewMode("pdf")}
-							title="PDF only"
-						>
-							<HugeiconsIcon icon={Pdf01Icon} className="size-4" />
-						</Button>
-					</div>
-					<Button
-						variant={isRecording ? "destructive" : "outline"}
-						size="icon"
-						onClick={isRecording ? stop : start}
-						disabled={disabled}
-					>
-						<HugeiconsIcon icon={isRecording ? MicOff01Icon : Mic01Icon} className="size-4" />
-					</Button>
-					{onSave && (
-						<>
-							<EditorDiffDialog
-								baseValue={baseValue ?? ""}
-								value={value}
-								filename={diffFilename}
-								hasChanges={hasDiff}
-								disabled={!hasDiff || disabled}
-								onDiscard={() => onChange(baseValue ?? "")}
-							/>
-							<Button onClick={handleSave} disabled={disabled || saving}>
-								{saving ? (
-									<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
-								) : (
-									"Save"
-								)}
+		<ResizablePanelGroup
+			direction="vertical"
+			autoSaveId="writer-editor-panel-sizes"
+			className="flex flex-1 flex-col min-h-0"
+		>
+			<ResizablePanel defaultSize={70} minSize={30}>
+				<div className="flex flex-col h-full gap-3">
+					<div className="flex items-center justify-between gap-3">
+						<div>
+							<p className="text-xs text-muted-foreground">Editing</p>
+							<h2 className="text-lg font-semibold leading-tight">{title ?? "Untitled"}</h2>
+						</div>
+						<div className="flex gap-2">
+							<div className="flex">
+								<Button
+									variant={viewMode === "editor" ? "secondary" : "ghost"}
+									size="icon"
+									className="size-7"
+									onClick={() => setViewMode("editor")}
+									title="Editor only"
+								>
+									<HugeiconsIcon icon={SourceCodeIcon} className="size-4" />
+								</Button>
+								<Button
+									variant={viewMode === "split" ? "secondary" : "ghost"}
+									size="icon"
+									className="size-7"
+									onClick={() => setViewMode("split")}
+									title="Split view"
+								>
+									<HugeiconsIcon icon={LeftToRightBlockQuoteIcon} className="size-4" />
+								</Button>
+								<Button
+									variant={viewMode === "pdf" ? "secondary" : "ghost"}
+									size="icon"
+									className="size-7"
+									onClick={() => setViewMode("pdf")}
+									title="PDF only"
+								>
+									<HugeiconsIcon icon={Pdf01Icon} className="size-4" />
+								</Button>
+							</div>
+							<Button
+								variant={isRecording ? "destructive" : "outline"}
+								size="icon"
+								onClick={isRecording ? stop : start}
+								disabled={disabled}
+							>
+								<HugeiconsIcon icon={isRecording ? MicOff01Icon : Mic01Icon} className="size-4" />
 							</Button>
-						</>
-					)}
+							{onSave && (
+								<>
+									<EditorDiffDialog
+										baseValue={baseValue ?? ""}
+										value={value}
+										filename={diffFilename}
+										hasChanges={hasDiff}
+										disabled={!hasDiff || disabled}
+										onDiscard={() => onChange(baseValue ?? "")}
+									/>
+									<Button onClick={handleSave} disabled={disabled || saving}>
+										{saving ? (
+											<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+										) : (
+											"Save"
+										)}
+									</Button>
+								</>
+							)}
+						</div>
+					</div>
+					<div className="flex flex-1 min-h-0">
+						{viewMode !== "pdf" && (
+							<div className={`min-h-0 overflow-y-auto ${viewMode === "split" ? "w-1/2" : "w-full"}`}>
+								<CodeMirror
+									ref={editorRef}
+									value={value}
+									height="100%"
+									extensions={extensions}
+									theme={oneDark}
+									onChange={(val) => onChange(val)}
+									basicSetup={{ lineNumbers: true }}
+									editable={!disabled}
+								/>
+							</div>
+						)}
+						{viewMode !== "editor" && (
+							<div className={`min-h-0 overflow-hidden ${viewMode === "split" ? "w-1/2" : "w-full"}`}>
+								<PdfPreview
+									pdfBlob={pdfBlob ?? null}
+									isLoading={isCompiling ?? false}
+									error={compileError ?? null}
+								/>
+							</div>
+						)}
+					</div>
 				</div>
-			</div>
-			<div className="flex flex-1 min-h-0 ">
-				{viewMode !== "pdf" && (
-					<div className={`min-h-0 overflow-y-auto ${viewMode === "split" ? "w-1/2" : "w-full"}`}>
-						<CodeMirror
-							ref={editorRef}
-							value={value}
-							height="100%"
-							extensions={extensions}
-							theme={oneDark}
-							onChange={(val) => onChange(val)}
-							basicSetup={{ lineNumbers: true }}
-							editable={!disabled}
-						/>
-					</div>
-				)}
-				{viewMode !== "editor" && (
-					<div className={`min-h-0 overflow-hidden ${viewMode === "split" ? "w-1/2" : "w-full"}`}>
-						<PdfPreview
-							pdfBlob={pdfBlob ?? null}
-							isLoading={isCompiling ?? false}
-							error={compileError ?? null}
-						/>
-					</div>
-				)}
-			</div>
+			</ResizablePanel>
 			{workspaceId && documentId && (
-				<div className="flex flex-col">
-					<AIPanel
-						workspaceId={workspaceId}
-						documentId={documentId}
-						content={value}
-						baseContent={baseValue ?? ""}
-						hasDraftChanges={hasDiff}
-						onContentChange={onChange}
-						onSaveAndContinue={handleSave}
-					/>
-				</div>
+				<>
+					<ResizableHandle withHandle />
+					<ResizablePanel defaultSize={30} minSize={10}>
+						<div className="flex flex-col h-full pt-3 overflow-hidden">
+							<AIPanel
+								workspaceId={workspaceId}
+								documentId={documentId}
+								content={value}
+								baseContent={baseValue ?? ""}
+								hasDraftChanges={hasDiff}
+								onContentChange={onChange}
+								onSaveAndContinue={handleSave}
+							/>
+						</div>
+					</ResizablePanel>
+				</>
 			)}
-		</div>
+		</ResizablePanelGroup>
 	);
 }

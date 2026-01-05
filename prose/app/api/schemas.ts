@@ -113,6 +113,19 @@ export type CheckerResponse = {
 	draftId: string;
 };
 
+// Summarize (AI-generated summary)
+export const summarizeBodySchema = z.object({
+	documentId: z.uuid(),
+	content: z.string(),
+	promptContent: z.string(),
+});
+
+export type SummarizeBody = z.infer<typeof summarizeBodySchema>;
+export type SummarizeResponse = {
+	summary: string;
+	summaryId: string;
+};
+
 // Document Summary
 export const upsertSummaryBodySchema = z.object({
 	summary: z.string(),
@@ -147,7 +160,7 @@ export type BookContextResponse = BookContextItem[];
 export const createBookBodySchema = z.object({
 	files: z.array(
 		z.object({
-			documentId: z.string().uuid(),
+			documentId: z.uuid(),
 			nodeType: z.enum(["chapter", "appendix", "frontmatter", "backmatter"]),
 			position: z.number().int().min(0),
 		})

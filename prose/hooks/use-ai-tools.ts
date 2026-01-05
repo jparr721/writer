@@ -6,6 +6,7 @@ import type {
 	ConsistencyCheckItem,
 	EditorPassResponse,
 	HelperResponse,
+	SummarizeResponse,
 } from "@/app/api/schemas";
 import type { ConsistencyCheck, DocumentSummary, HelpSuggestion } from "@/lib/db/schema";
 
@@ -97,6 +98,37 @@ export function useChecker(workspaceId: string | null | undefined) {
 		},
 		onError: (error) => {
 			console.error("Error checking document:", error);
+		},
+	});
+}
+
+// Summarize (AI-generated summary)
+export function useSummarize(workspaceId: string | null | undefined) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async ({
+			documentId,
+			content,
+			promptContent,
+		}: {
+			documentId: string;
+			content: string;
+			promptContent: string;
+		}) => {
+			const { data } = await axios.post<SummarizeResponse>(
+				`/api/workspace/${workspaceId}/ai/summarize`,
+				{ documentId, content, promptContent }
+			);
+			return data;
+		},
+		onSuccess: (_, { documentId }) => {
+			queryClient.invalidateQueries({
+				queryKey: ["document-summary", workspaceId, documentId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["book-context", workspaceId],
+			});
 		},
 	});
 }
