@@ -1,7 +1,5 @@
 "use client";
 
-import { Loading03Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { ColumnDef } from "@tanstack/react-table";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -23,6 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "./ui/spinner";
 
 type NodeType = "chapter" | "appendix" | "frontmatter" | "backmatter";
 
@@ -170,11 +169,11 @@ export default function BookViewDialog({
 
 				{isLoading ? (
 					<div className="flex items-center justify-center py-8">
-						<HugeiconsIcon icon={Loading03Icon} className="size-6 animate-spin" />
+						<Spinner />
 					</div>
 				) : bookFiles.length === 0 ? (
 					<div className="py-8 text-center text-muted-foreground">
-						No book structure defined yet. Use "Create Book" to set one up.
+						No book structure defined yet. Use Create Book to set one up.
 					</div>
 				) : (
 					<div className="flex-1 overflow-auto rounded border">
@@ -192,7 +191,7 @@ export default function BookViewDialog({
 				<DialogFooter showCloseButton>
 					<Button onClick={handleSave} disabled={isSaving || bookFiles.length === 0}>
 						{isSaving ? (
-							<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+							<Spinner />
 						) : (
 							"Save Changes"
 						)}
