@@ -15,8 +15,9 @@ export function buildFolderPathMap(folders: Folder[]): Map<string, string> {
 	const pathCache = new Map<string, string>();
 
 	function getPath(folderId: string): string {
-		if (pathCache.has(folderId)) {
-			return pathCache.get(folderId)!;
+		const cached = pathCache.get(folderId);
+		if (cached !== undefined) {
+			return cached;
 		}
 
 		const folder = folderById.get(folderId);
@@ -64,14 +65,15 @@ export function getDescendantFolderIds(folderId: string, folders: Folder[]): Set
 		if (!childrenMap.has(parentId)) {
 			childrenMap.set(parentId, []);
 		}
-		childrenMap.get(parentId)!.push(folder);
+		childrenMap.get(parentId)?.push(folder);
 	}
 
 	const result = new Set<string>();
 	const queue = [folderId];
 
 	while (queue.length > 0) {
-		const current = queue.shift()!;
+		const current = queue.shift();
+		if (!current) break;
 		result.add(current);
 
 		const children = childrenMap.get(current) || [];

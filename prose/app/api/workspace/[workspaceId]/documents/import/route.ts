@@ -17,6 +17,18 @@ type ImportSummary = {
 	errors: ImportError[];
 };
 
+type FileMetadata = {
+	path: string;
+	extension: string | null;
+	lastModified: number;
+};
+
+function extractExtension(filename: string): string | null {
+	const lastDot = filename.lastIndexOf(".");
+	if (lastDot === -1 || lastDot === filename.length - 1) return null;
+	return filename.slice(lastDot + 1).toLowerCase();
+}
+
 function sanitizePath(path: string): string | null {
 	// Reject backslashes and absolute/parent traversal
 	if (!path || path.includes("\\") || path.startsWith("/") || path.includes("..")) {
@@ -95,6 +107,11 @@ export async function POST(
 			.getAll("files")
 			.filter((entry): entry is File => entry instanceof File);
 
+		// Parse metadata if provided
+		const metadataJson = formData.get("metadata");
+		const metadata: FileMetadata[] = metadataJson ? JSON.parse(metadataJson as string) : [];
+		const metadataMap = new Map(metadata.map((m) => [m.path, m]));
+
 		if (!fileEntries.length) {
 			return NextResponse.json<ImportSummary>(
 				{
@@ -150,12 +167,21 @@ export async function POST(
 
 			const content = await file.text();
 
+			// Get metadata from client or extract from filename
+			const fileMeta = metadataMap.get(sanitized);
+			const extension = fileMeta?.extension ?? extractExtension(filename);
+			const originalModifiedAt = fileMeta?.lastModified
+				? new Date(fileMeta.lastModified)
+				: null;
+
 			try {
 				await db.insert(documents).values({
 					title: filename,
 					content,
 					workspaceId,
 					folderId: parentId,
+					extension,
+					originalModifiedAt,
 				});
 				createdDocuments += 1;
 			} catch (error) {

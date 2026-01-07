@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import {
-	type ErrorResponse,
-	type RewriterResponse,
-	rewriterBodySchema,
-} from "@/app/api/schemas";
+import { type ErrorResponse, type RewriterResponse, rewriterBodySchema } from "@/app/api/schemas";
 import AiGenerator from "@/lib/ai/ai-generator";
 
 export async function POST(request: Request) {
@@ -28,20 +24,14 @@ export async function POST(request: Request) {
 		});
 	} catch (error) {
 		if (error instanceof ZodError) {
-			return NextResponse.json(
-				{ error: "Invalid request" } satisfies ErrorResponse,
-				{
-					status: 400,
-				},
-			);
+			return NextResponse.json({ error: "Invalid request" } satisfies ErrorResponse, {
+				status: 400,
+			});
 		}
 
 		console.error("Failed to run rewriter:", error);
-		return NextResponse.json(
-			{ error: "Failed to run rewriter" } satisfies ErrorResponse,
-			{
-				status: 500,
-			},
-		);
+		return NextResponse.json({ error: "Failed to run rewriter" } satisfies ErrorResponse, {
+			status: 500,
+		});
 	}
 }

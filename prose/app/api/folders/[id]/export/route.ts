@@ -55,7 +55,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 		for (const doc of documentsToExport) {
 			const fullPath = getDocumentPath(doc, folderPathMap);
 			// Make the path relative to the target folder
-			const relativePath = fullPath.startsWith(basePath + "/")
+			const relativePath = fullPath.startsWith(`${basePath}/`)
 				? fullPath.slice(basePath.length + 1)
 				: fullPath.startsWith(basePath)
 					? fullPath.slice(basePath.length) || doc.title

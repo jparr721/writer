@@ -12,7 +12,9 @@
       "Bash(cat:*)",
       "WebFetch(domain:react-uploady.org)",
       "Bash(node -e:*)",
-      "Bash(bun lint:*)"
+      "Bash(bun lint:*)",
+      "Bash(bun run:*)",
+      "Bash(timeout 5 cat:*)"
     ]
   }
 }

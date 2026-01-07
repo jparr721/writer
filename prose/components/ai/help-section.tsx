@@ -2,7 +2,6 @@
 
 import { ArrowRight01Icon, Idea01Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -84,15 +83,18 @@ function HelpInputDialog({
 				<div className="flex flex-col gap-4">
 					{bookContext.length > 0 && (
 						<div>
-							<label className="mb-1.5 block text-sm font-medium">Book Context</label>
+							<span className="mb-1.5 block text-sm font-medium">Book Context</span>
 							<div className="rounded-md border p-2 text-xs text-muted-foreground">
 								Using {bookContext.length} chapter summaries as context
 							</div>
 						</div>
 					)}
 					<div>
-						<label className="mb-1.5 block text-sm font-medium">Specific Requests</label>
+						<label htmlFor="specific-requests" className="mb-1.5 block text-sm font-medium">
+							Specific Requests
+						</label>
 						<Textarea
+							id="specific-requests"
 							value={specificRequests}
 							onChange={(e) => setSpecificRequests(e.target.value)}
 							placeholder="Any specific guidance or questions you have..."
@@ -130,8 +132,6 @@ function HelpResultsDialog({
 	const [continuationType, setContinuationType] = useState<"conservative" | "divergent">(
 		"conservative"
 	);
-	// This page is on /documents/[documentId] so we need to get the document ID from the URL
-	const { documentId } = useParams();
 
 	// Applies the suggestion to the chapter using the LLM to do a full replacement of the chapter content
 	const handleApplyToChapter = () => {};

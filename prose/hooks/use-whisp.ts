@@ -84,7 +84,9 @@ export function useWhisp() {
 			audioCtxRef.current = null;
 		}
 		if (streamRef.current) {
-			streamRef.current.getTracks().forEach((t) => t.stop());
+			for (const t of streamRef.current.getTracks()) {
+				t.stop();
+			}
 			streamRef.current = null;
 		}
 		lastTextRef.current = "";

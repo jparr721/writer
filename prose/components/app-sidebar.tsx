@@ -89,7 +89,7 @@ export default function AppSidebar({
 	useEffect(() => {
 		// reset expanded folders when workspace changes
 		setOpenFolders(new Set());
-	}, [workspaceId]);
+	}, []);
 
 	useEffect(() => {
 		if (!library) return;
@@ -141,7 +141,7 @@ export default function AppSidebar({
 		const roots: FolderNode[] = [];
 		folderNodes.forEach((node) => {
 			if (node.parentId && folderNodes.has(node.parentId)) {
-				folderNodes.get(node.parentId)!.folders.push(node);
+				folderNodes.get(node.parentId)?.folders.push(node);
 			} else {
 				roots.push(node);
 			}
@@ -156,7 +156,7 @@ export default function AppSidebar({
 			};
 
 			if (doc.folderId && folderNodes.has(doc.folderId)) {
-				folderNodes.get(doc.folderId)!.documents.push(summary);
+				folderNodes.get(doc.folderId)?.documents.push(summary);
 			} else {
 				rootDocuments.push(summary);
 			}
@@ -209,7 +209,7 @@ export default function AppSidebar({
 								<SidebarDocumentItem
 									key={doc.id}
 									doc={doc}
-									workspaceId={workspaceId!}
+									workspaceId={workspaceId as string}
 									selectedId={selectedId}
 									onSelect={handleSelect}
 									paddingLeft={depth * 12 + 24}
@@ -231,7 +231,7 @@ export default function AppSidebar({
 					{!hasDocuments ? (
 						<FolderUploadDialog workspaceId={workspaceId} />
 					) : !hasBook ? (
-						<BookSetupDialog workspaceId={workspaceId!} documents={library.documents} />
+						<BookSetupDialog workspaceId={workspaceId as string} documents={library.documents} />
 					) : (
 						<Button asChild>
 							<Link href={`/workspace/${workspaceId}/book`}>Go to Book</Link>
@@ -246,7 +246,7 @@ export default function AppSidebar({
 							<SidebarDocumentItem
 								key={doc.id}
 								doc={doc}
-								workspaceId={workspaceId!}
+								workspaceId={workspaceId as string}
 								selectedId={selectedId}
 								onSelect={handleSelect}
 								paddingLeft={12}

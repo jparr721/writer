@@ -78,7 +78,7 @@ export function SidebarDocumentItem({
 							className="justify-start"
 							style={{ paddingLeft: `${paddingLeft}px` }}
 						>
-							<button className="w-full text-left">
+							<button type="button" className="w-full text-left">
 								<div className="flex flex-col">
 									<span>{doc.title || "Untitled"}</span>
 								</div>

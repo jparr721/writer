@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/lib/db";
 import { runCompilationPipeline } from "@/lib/latex";
 
 const paramsSchema = z.object({
@@ -22,7 +21,7 @@ export async function POST(
 		}
 
 		// Return PDF binary
-		return new NextResponse(result.pdf, {
+		return new NextResponse(new Uint8Array(result.pdf), {
 			status: 200,
 			headers: {
 				"Content-Type": "application/pdf",

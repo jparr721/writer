@@ -10,7 +10,6 @@ type AIPanelProps = {
 	workspaceId: string;
 	documentId: string;
 	content: string;
-	baseContent: string;
 	hasDraftChanges: boolean;
 	onContentChange: (content: string) => void;
 	onSaveAndContinue: () => Promise<void>;
@@ -20,7 +19,6 @@ export default function AIPanel({
 	workspaceId,
 	documentId,
 	content,
-	baseContent,
 	hasDraftChanges,
 	onContentChange,
 	onSaveAndContinue,

@@ -2,15 +2,6 @@ import { mkdir, writeFile } from "fs/promises";
 import { dirname, join } from "path";
 import type { ExportedFile, FolderTreeNode } from "./types";
 
-function sanitizeFilename(name: string): string {
-	return name
-		.replace(/[<>:"/\\|?*]/g, "_")
-		.replace(/\s+/g, "_")
-		.replace(/_{2,}/g, "_")
-		.replace(/^_|_$/g, "")
-		.slice(0, 200);
-}
-
 function flattenTree(nodes: FolderTreeNode[], basePath: string = ""): ExportedFile[] {
 	const files: ExportedFile[] = [];
 

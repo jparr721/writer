@@ -56,6 +56,8 @@ export const documents = pgTable(
 			.notNull()
 			.references(() => workspaces.id, { onDelete: "cascade" }),
 		folderId: uuid("folder_id").references(() => folders.id, { onDelete: "cascade" }),
+		extension: varchar("extension", { length: 32 }),
+		originalModifiedAt: timestamp("original_modified_at", { withTimezone: true }),
 		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 	},

@@ -88,10 +88,8 @@ export default function Editor({
 
 	// Format book context for rewriter
 	const formattedBookContext = useMemo(() => {
-		if (!bookContextData ) return "No book context provided.";
-		return bookContextData
-			.map((item) => `## ${item.title}\n${item.summary}`)
-			.join("\n\n");
+		if (!bookContextData) return "No book context provided.";
+		return bookContextData.map((item) => `## ${item.title}\n${item.summary}`).join("\n\n");
 	}, [bookContextData]);
 
 	// Insert transcribed text at cursor position and move cursor to end
@@ -338,7 +336,6 @@ export default function Editor({
 								workspaceId={workspaceId}
 								documentId={documentId}
 								content={value}
-								baseContent={baseValue ?? ""}
 								hasDraftChanges={hasDiff}
 								onContentChange={onChange}
 								onSaveAndContinue={handleSave}

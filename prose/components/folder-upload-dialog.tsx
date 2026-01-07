@@ -2,7 +2,6 @@
 
 import { Loading03Icon, MultiplicationSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import axios from "axios";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,20 +16,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useInvalidateDocuments } from "@/hooks/use-documents";
-import { useInvalidateLibrary } from "@/hooks/use-library";
-
-type PendingFile = {
-	file: File;
-	path: string;
-	size: number;
-};
-
-function getRelativePath(file: File): string {
-	const maybeWithPath = file as File & { webkitRelativePath?: string };
-	const relPath = maybeWithPath.webkitRelativePath;
-	return relPath && relPath.length > 0 ? relPath : file.name;
-}
+import { Progress } from "@/components/ui/progress";
+import { useFolderUpload } from "@/hooks/use-folder-upload";
+import type { PendingFile } from "@/lib/upload/types";
+import { fileToPendingFile } from "@/lib/upload/utils";
 
 type FolderUploadDialogProps = {
 	workspaceId: string | null;
@@ -40,11 +29,10 @@ export default function FolderUploadDialog({ workspaceId }: FolderUploadDialogPr
 	const [open, setOpen] = useState(false);
 	const [files, setFiles] = useState<PendingFile[]>([]);
 	const [filter, setFilter] = useState("");
-	const [isUploading, setIsUploading] = useState(false);
 	const [ignoreDotFiles, setIgnoreDotFiles] = useState(true);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
-	const invalidateDocuments = useInvalidateDocuments(workspaceId);
-	const invalidateLibrary = useInvalidateLibrary(workspaceId);
+
+	const { upload, isUploading, progress, reset } = useFolderUpload(workspaceId);
 
 	const handleChoose = useCallback(() => {
 		fileInputRef.current?.click();
@@ -54,14 +42,7 @@ export default function FolderUploadDialog({ workspaceId }: FolderUploadDialogPr
 		const selected = event.target.files;
 		if (!selected?.length) return;
 
-		const next: PendingFile[] = [];
-		for (const file of Array.from(selected)) {
-			next.push({
-				file,
-				path: getRelativePath(file),
-				size: file.size,
-			});
-		}
+		const next = Array.from(selected).map(fileToPendingFile);
 		setFiles(next);
 	}, []);
 
@@ -92,33 +73,30 @@ export default function FolderUploadDialog({ workspaceId }: FolderUploadDialogPr
 	const totalSize = useMemo(() => files.reduce((sum, f) => sum + f.size, 0), [files]);
 
 	const handleUpload = useCallback(async () => {
-		if (!files.length) return;
-		if (!workspaceId) return;
-		setIsUploading(true);
+		if (!filteredFiles.length) return;
+
 		try {
-			const formData = new FormData();
-			for (const item of files) {
-				formData.append("files", item.file, item.path);
-			}
-
-			await axios.post(`/api/workspace/${workspaceId}/documents/import`, formData, {
-				headers: { "Content-Type": "multipart/form-data" },
-			});
-
-			invalidateDocuments();
-			invalidateLibrary();
+			await upload(filteredFiles);
 			setOpen(false);
 			setFiles([]);
 			setFilter("");
 		} catch (error) {
 			console.error("Failed to upload folder", error);
-		} finally {
-			setIsUploading(false);
 		}
-	}, [files, invalidateDocuments, invalidateLibrary, workspaceId]);
+	}, [filteredFiles, upload]);
+
+	const handleOpenChange = useCallback(
+		(nextOpen: boolean) => {
+			if (!nextOpen) {
+				reset();
+			}
+			setOpen(nextOpen);
+		},
+		[reset]
+	);
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<Button variant="default" disabled={!workspaceId}>
 					Import Folder
@@ -199,13 +177,26 @@ export default function FolderUploadDialog({ workspaceId }: FolderUploadDialogPr
 					<div>{filteredFiles.length !== files.length ? `${filteredFiles.length} shown` : ""}</div>
 				</div>
 
+				{isUploading && progress && (
+					<div className="space-y-2">
+						<Progress value={progress.completed} className="h-2" />
+						<div className="flex justify-between text-xs text-muted-foreground">
+							<span>Uploading...</span>
+							<span>{progress.completed}%</span>
+						</div>
+					</div>
+				)}
+
 				<DialogFooter className="flex items-center gap-2 sm:justify-end">
-					<Button variant="outline" onClick={() => setOpen(false)} disabled={isUploading}>
+					<Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isUploading}>
 						Cancel
 					</Button>
-					<Button onClick={handleUpload} disabled={!files.length || isUploading}>
+					<Button onClick={handleUpload} disabled={!filteredFiles.length || isUploading}>
 						{isUploading ? (
-							<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+							<>
+								<HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin mr-2" />
+								{progress?.completed ?? 0}%
+							</>
 						) : (
 							"Upload"
 						)}
