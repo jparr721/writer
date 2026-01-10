@@ -1,10 +1,12 @@
 import { defineConfig } from "drizzle-kit";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 export default defineConfig({
 	schema: "./lib/db/schema.ts",
 	out: "./drizzle",
-	dialect: "postgresql",
+	dialect: "sqlite",
 	dbCredentials: {
-		url: "postgres://postgres:postgres@localhost:5432/prose",
+		url: `file:${join(homedir(), ".prose", "prose.db")}`,
 	},
 });
