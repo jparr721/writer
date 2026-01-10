@@ -1,3 +1,4 @@
+// TODO: Filesystem refactor - now uses filePath instead of documentId
 "use client";
 
 import { PencilEdit01Icon } from "@hugeicons/core-free-icons";
@@ -11,7 +12,7 @@ import { DraftWarningDialog } from "./draft-warning-dialog";
 
 type EditorPassSectionProps = {
 	workspaceId: string;
-	documentId: string;
+	filePath: string;
 	content: string;
 	hasDraftChanges: boolean;
 	onContentChange: (content: string) => void;
@@ -20,7 +21,7 @@ type EditorPassSectionProps = {
 
 export function EditorPassSection({
 	workspaceId,
-	documentId,
+	filePath,
 	content,
 	hasDraftChanges,
 	onContentChange,
@@ -41,7 +42,7 @@ export function EditorPassSection({
 
 	const runEditorPass = async () => {
 		const result = await editorPass.mutateAsync({
-			documentId,
+			filePath,
 			content,
 			promptContent: prompts.editor,
 		});

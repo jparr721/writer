@@ -1,9 +1,11 @@
+// TODO: Filesystem refactor - this route now uses filePath instead of documentId
+// The [id] param now represents a URL-encoded filePath
+
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 import {
 	type DocumentDraftResponse,
-	documentIdParamsSchema,
 	type ErrorResponse,
 	type SuccessResponse,
 	upsertDraftBodySchema,
@@ -13,16 +15,20 @@ import { documentDrafts } from "@/lib/db/schema";
 
 type RouteParams = { params: Promise<{ workspaceId: string; id: string }> };
 
+const paramsSchema = z.object({
+	workspaceId: z.uuid(),
+	id: z.string(), // This is now the filePath (URL-encoded)
+});
+
 export async function GET(_request: Request, { params }: RouteParams) {
 	try {
-		const { workspaceId, id } = documentIdParamsSchema
-			.extend({ workspaceId: documentIdParamsSchema.shape.id })
-			.parse(await params);
+		const { workspaceId, id } = paramsSchema.parse(await params);
+		const filePath = decodeURIComponent(id);
 
 		const [draft] = await db
 			.select()
 			.from(documentDrafts)
-			.where(and(eq(documentDrafts.workspaceId, workspaceId), eq(documentDrafts.documentId, id)));
+			.where(and(eq(documentDrafts.workspaceId, workspaceId), eq(documentDrafts.filePath, filePath)));
 
 		return NextResponse.json<DocumentDraftResponse | null>(draft ?? null);
 	} catch (error) {
@@ -41,9 +47,8 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
 export async function PUT(request: Request, { params }: RouteParams) {
 	try {
-		const { workspaceId, id } = documentIdParamsSchema
-			.extend({ workspaceId: documentIdParamsSchema.shape.id })
-			.parse(await params);
+		const { workspaceId, id } = paramsSchema.parse(await params);
+		const filePath = decodeURIComponent(id);
 		const body = upsertDraftBodySchema.parse(await request.json());
 
 		const now = new Date();
@@ -52,12 +57,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
 			.insert(documentDrafts)
 			.values({
 				workspaceId,
-				documentId: id,
+				filePath,
 				content: body.content,
 				updatedAt: now,
 			})
 			.onConflictDoUpdate({
-				target: [documentDrafts.workspaceId, documentDrafts.documentId],
+				target: [documentDrafts.workspaceId, documentDrafts.filePath],
 				set: { content: body.content, updatedAt: now },
 			})
 			.returning();
@@ -79,13 +84,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
 export async function DELETE(_request: Request, { params }: RouteParams) {
 	try {
-		const { workspaceId, id } = documentIdParamsSchema
-			.extend({ workspaceId: documentIdParamsSchema.shape.id })
-			.parse(await params);
+		const { workspaceId, id } = paramsSchema.parse(await params);
+		const filePath = decodeURIComponent(id);
 
 		await db
 			.delete(documentDrafts)
-			.where(and(eq(documentDrafts.workspaceId, workspaceId), eq(documentDrafts.documentId, id)));
+			.where(and(eq(documentDrafts.workspaceId, workspaceId), eq(documentDrafts.filePath, filePath)));
 
 		return NextResponse.json<SuccessResponse>({ success: true });
 	} catch (error) {

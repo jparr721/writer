@@ -1,12 +1,23 @@
 import { z } from "zod";
 import type {
 	ConsistencyCheck,
-	Document,
 	DocumentDraft,
 	DocumentSummary,
 	HelpSuggestion,
 	Workspace,
 } from "@/lib/db/schema";
+
+// TODO: Filesystem refactor - Document type moved to filesystem
+// This is a temporary stub type for API compatibility
+export type Document = {
+	id: string;
+	workspaceId: string;
+	filePath: string;
+	title: string;
+	content: string;
+	createdAt: Date;
+	updatedAt: Date;
+};
 
 export const documentIdParamsSchema = z.object({
 	id: z.uuid(),
@@ -40,6 +51,7 @@ export const workspaceIdParamsSchema = z.object({
 
 export const createWorkspaceBodySchema = z.object({
 	name: z.string().trim().min(1).max(255),
+	rootPath: z.string().trim().min(1),
 });
 
 export type DocumentIdParams = z.infer<typeof documentIdParamsSchema>;
@@ -66,7 +78,7 @@ export type ExportDocumentResponse = SuccessResponse & {
 
 // Editor Pass
 export const editorPassBodySchema = z.object({
-	documentId: z.uuid(),
+	filePath: z.string(),
 	content: z.string(),
 	promptContent: z.string(),
 });
@@ -79,7 +91,7 @@ export type EditorPassResponse = {
 
 // Helper
 export const helperBodySchema = z.object({
-	documentId: z.uuid(),
+	filePath: z.string(),
 	content: z.string(),
 	bookContext: z.string().optional(),
 	specificRequests: z.string().optional(),
@@ -94,7 +106,7 @@ export type HelperResponse = {
 
 // Checker
 export const checkerBodySchema = z.object({
-	documentId: z.uuid(),
+	filePath: z.string(),
 	content: z.string(),
 	promptContent: z.string(),
 });
@@ -115,7 +127,7 @@ export type CheckerResponse = {
 
 // Summarize (AI-generated summary)
 export const summarizeBodySchema = z.object({
-	documentId: z.uuid(),
+	filePath: z.string(),
 	content: z.string(),
 	promptContent: z.string(),
 });
@@ -128,7 +140,7 @@ export type SummarizeResponse = {
 
 // Rewriter
 export const rewriterBodySchema = z.object({
-	documentId: z.uuid(),
+	filePath: z.string(),
 	selectedText: z.string(),
 	instructions: z.string(),
 	bookContext: z.string(),
@@ -165,7 +177,7 @@ export type ConsistencyCheckListResponse = ConsistencyCheck[];
 
 // Book Context
 export type BookContextItem = {
-	documentId: string;
+	filePath: string;
 	title: string;
 	summary: string;
 	position: number;
@@ -176,7 +188,7 @@ export type BookContextResponse = BookContextItem[];
 export const createBookBodySchema = z.object({
 	files: z.array(
 		z.object({
-			documentId: z.uuid(),
+			filePath: z.string(),
 			nodeType: z.enum(["chapter", "appendix", "frontmatter", "backmatter"]),
 			position: z.number().int().min(0),
 		})
@@ -186,7 +198,7 @@ export const createBookBodySchema = z.object({
 export type CreateBookBody = z.infer<typeof createBookBodySchema>;
 export type BookFileResponse = {
 	id: string;
-	documentId: string;
+	filePath: string;
 	nodeType: string;
 	position: number;
 };

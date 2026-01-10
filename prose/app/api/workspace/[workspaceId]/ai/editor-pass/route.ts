@@ -15,7 +15,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId } = await params;
 		const body = editorPassBodySchema.parse(await request.json());
-		const { documentId, content, promptContent } = body;
+		const { filePath, content, promptContent } = body;
 
 		// Call LLM
 		const generator = new AiGenerator(0.7);
@@ -27,12 +27,12 @@ export async function POST(request: Request, { params }: RouteParams) {
 			.insert(documentDrafts)
 			.values({
 				workspaceId,
-				documentId,
+				filePath,
 				content: editedContent,
 				updatedAt: now,
 			})
 			.onConflictDoUpdate({
-				target: [documentDrafts.workspaceId, documentDrafts.documentId],
+				target: [documentDrafts.workspaceId, documentDrafts.filePath],
 				set: { content: editedContent, updatedAt: now },
 			})
 			.returning();

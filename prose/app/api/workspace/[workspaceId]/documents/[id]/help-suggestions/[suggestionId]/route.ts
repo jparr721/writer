@@ -1,8 +1,10 @@
+// TODO: Filesystem refactor - this route now uses filePath instead of documentId
+// The [id] param now represents a URL-encoded filePath
+
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { ZodError, z } from "zod";
 import {
-	documentIdParamsSchema,
 	type ErrorResponse,
 	type HelpSuggestionResponse,
 	type SuccessResponse,
@@ -13,14 +15,16 @@ import { helpSuggestions } from "@/lib/db/schema";
 
 type RouteParams = { params: Promise<{ workspaceId: string; id: string; suggestionId: string }> };
 
-const paramsSchema = documentIdParamsSchema.extend({
+const paramsSchema = z.object({
 	workspaceId: z.uuid(),
+	id: z.string(), // This is now the filePath (URL-encoded)
 	suggestionId: z.uuid(),
 });
 
 export async function GET(_request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId, id, suggestionId } = paramsSchema.parse(await params);
+		const filePath = decodeURIComponent(id);
 
 		const [suggestion] = await db
 			.select()
@@ -28,7 +32,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 			.where(
 				and(
 					eq(helpSuggestions.workspaceId, workspaceId),
-					eq(helpSuggestions.documentId, id),
+					eq(helpSuggestions.filePath, filePath),
 					eq(helpSuggestions.id, suggestionId)
 				)
 			);
@@ -57,6 +61,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 export async function PUT(request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId, id, suggestionId } = paramsSchema.parse(await params);
+		const filePath = decodeURIComponent(id);
 		const body = updateHelpSuggestionBodySchema.parse(await request.json());
 
 		const updateData: { response?: string; completed?: boolean; updatedAt: Date } = {
@@ -71,7 +76,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
 			.where(
 				and(
 					eq(helpSuggestions.workspaceId, workspaceId),
-					eq(helpSuggestions.documentId, id),
+					eq(helpSuggestions.filePath, filePath),
 					eq(helpSuggestions.id, suggestionId)
 				)
 			)
@@ -102,13 +107,14 @@ export async function PUT(request: Request, { params }: RouteParams) {
 export async function DELETE(_request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId, id, suggestionId } = paramsSchema.parse(await params);
+		const filePath = decodeURIComponent(id);
 
 		const [deleted] = await db
 			.delete(helpSuggestions)
 			.where(
 				and(
 					eq(helpSuggestions.workspaceId, workspaceId),
-					eq(helpSuggestions.documentId, id),
+					eq(helpSuggestions.filePath, filePath),
 					eq(helpSuggestions.id, suggestionId)
 				)
 			)

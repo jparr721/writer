@@ -37,6 +37,7 @@ import AIPanel from "./ai-panel";
 const VIEW_MODE_KEY = "writer-view-mode";
 type ViewMode = "editor" | "split" | "pdf";
 
+// TODO: Filesystem refactor - now uses filePath instead of documentId
 type EditorProps = {
 	title?: string;
 	value: string;
@@ -50,7 +51,7 @@ type EditorProps = {
 	isCompiling?: boolean;
 	compileError?: Error | null;
 	workspaceId?: string;
-	documentId?: string;
+	filePath?: string;
 };
 
 export default function Editor({
@@ -66,7 +67,7 @@ export default function Editor({
 	isCompiling,
 	compileError,
 	workspaceId,
-	documentId,
+	filePath,
 }: EditorProps) {
 	const [localSaving, setLocalSaving] = useState(false);
 	const [viewMode, setViewMode] = useLocalStorage<ViewMode>(VIEW_MODE_KEY, "split");
@@ -147,10 +148,10 @@ export default function Editor({
 	);
 
 	const handleRewrite = async () => {
-		if (!selection || !documentId) return;
+		if (!selection || !filePath) return;
 		try {
 			const result = await rewriter.mutateAsync({
-				documentId,
+				filePath,
 				selectedText: selection.text,
 				instructions: rewriteInstructions,
 				bookContext: formattedBookContext,
@@ -268,7 +269,7 @@ export default function Editor({
 								/>
 								{/* Selection Rewrite Popover */}
 								<Popover
-									open={!!selection && !!workspaceId && !!documentId}
+									open={!!selection && !!workspaceId && !!filePath}
 									onOpenChange={(open) => {
 										if (!open) {
 											setSelection(null);
@@ -327,14 +328,14 @@ export default function Editor({
 					</div>
 				</div>
 			</ResizablePanel>
-			{workspaceId && documentId && (
+			{workspaceId && filePath && (
 				<>
 					<ResizableHandle withHandle />
 					<ResizablePanel defaultSize={30} minSize={10}>
 						<div className="flex flex-col h-full pt-3 overflow-hidden">
 							<AIPanel
 								workspaceId={workspaceId}
-								documentId={documentId}
+								filePath={filePath}
 								content={value}
 								hasDraftChanges={hasDiff}
 								onContentChange={onChange}

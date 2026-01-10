@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { documents, folders } from "@/lib/db/schema";
+// TODO: Filesystem refactor - this module needs to read from filesystem instead of database
+// The documents and folders tables have been removed from the schema
+
 import type { DocumentNode, FolderTreeNode } from "./types";
 
 type FolderRow = {
@@ -96,22 +96,9 @@ function buildTree(folderRows: FolderRow[], documentRows: DocumentRow[]): Folder
 	return roots;
 }
 
-export async function fetchWorkspaceTree(workspaceId: string): Promise<FolderTreeNode[]> {
-	const [folderRows, documentRows] = await Promise.all([
-		db.select().from(folders).where(eq(folders.workspaceId, workspaceId)),
-		db
-			.select({
-				id: documents.id,
-				title: documents.title,
-				content: documents.content,
-				folderId: documents.folderId,
-			})
-			.from(documents)
-			.where(eq(documents.workspaceId, workspaceId)),
-	]);
-
-	return buildTree(
-		folderRows.map((f) => ({ id: f.id, name: f.name, parentId: f.parentId })),
-		documentRows
-	);
+export async function fetchWorkspaceTree(_workspaceId: string): Promise<FolderTreeNode[]> {
+	// TODO: Filesystem refactor - implement filesystem-based tree fetching
+	// For now, return empty tree to allow build to pass
+	console.warn("fetchWorkspaceTree: Not implemented - filesystem refactor pending");
+	return [];
 }

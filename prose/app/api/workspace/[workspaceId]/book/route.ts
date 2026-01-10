@@ -20,7 +20,7 @@ export async function GET(
 		const rows = await db
 			.select({
 				id: bookFiles.id,
-				documentId: bookFiles.documentId,
+				filePath: bookFiles.filePath,
 				nodeType: bookFiles.nodeType,
 				position: bookFiles.position,
 			})
@@ -53,7 +53,7 @@ export async function POST(
 				await tx.insert(bookFiles).values(
 					body.files.map((file) => ({
 						workspaceId,
-						documentId: file.documentId,
+						filePath: file.filePath,
 						nodeType: file.nodeType,
 						position: file.position,
 					}))
@@ -65,7 +65,7 @@ export async function POST(
 		const rows = await db
 			.select({
 				id: bookFiles.id,
-				documentId: bookFiles.documentId,
+				filePath: bookFiles.filePath,
 				nodeType: bookFiles.nodeType,
 				position: bookFiles.position,
 			})

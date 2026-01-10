@@ -1,3 +1,4 @@
+// TODO: Filesystem refactor - All hooks now use filePath instead of documentId
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import type {
@@ -16,22 +17,22 @@ export function useEditorPass(workspaceId: string | null | undefined) {
 
 	return useMutation({
 		mutationFn: async ({
-			documentId,
+			filePath,
 			content,
 			promptContent,
 		}: {
-			documentId: string;
+			filePath: string;
 			content: string;
 			promptContent: string;
 		}) => {
 			const { data } = await axios.post<EditorPassResponse>(
 				`/api/workspace/${workspaceId}/ai/editor-pass`,
-				{ documentId, content, promptContent }
+				{ filePath, content, promptContent }
 			);
 			return data;
 		},
-		onSuccess: (_, { documentId }) => {
-			queryClient.invalidateQueries({ queryKey: ["document-draft", workspaceId, documentId] });
+		onSuccess: (_, { filePath }) => {
+			queryClient.invalidateQueries({ queryKey: ["document-draft", workspaceId, filePath] });
 		},
 	});
 }
@@ -42,20 +43,20 @@ export function useHelper(workspaceId: string | null | undefined) {
 
 	return useMutation({
 		mutationFn: async ({
-			documentId,
+			filePath,
 			content,
 			bookContext,
 			specificRequests,
 			promptContent,
 		}: {
-			documentId: string;
+			filePath: string;
 			content: string;
 			bookContext?: string;
 			specificRequests?: string;
 			promptContent: string;
 		}) => {
 			const { data } = await axios.post<HelperResponse>(`/api/workspace/${workspaceId}/ai/helper`, {
-				documentId,
+				filePath,
 				content,
 				bookContext,
 				specificRequests,
@@ -63,9 +64,9 @@ export function useHelper(workspaceId: string | null | undefined) {
 			});
 			return data;
 		},
-		onSuccess: (_, { documentId }) => {
+		onSuccess: (_, { filePath }) => {
 			queryClient.invalidateQueries({
-				queryKey: ["help-suggestions", workspaceId, documentId],
+				queryKey: ["help-suggestions", workspaceId, filePath],
 			});
 		},
 	});
@@ -77,23 +78,23 @@ export function useChecker(workspaceId: string | null | undefined) {
 
 	return useMutation({
 		mutationFn: async ({
-			documentId,
+			filePath,
 			content,
 			promptContent,
 		}: {
-			documentId: string;
+			filePath: string;
 			content: string;
 			promptContent: string;
 		}) => {
 			const { data } = await axios.post<CheckerResponse>(
 				`/api/workspace/${workspaceId}/ai/checker`,
-				{ documentId, content, promptContent }
+				{ filePath, content, promptContent }
 			);
 			return data;
 		},
-		onSuccess: (_, { documentId }) => {
+		onSuccess: (_, { filePath }) => {
 			queryClient.invalidateQueries({
-				queryKey: ["consistency-checks", workspaceId, documentId],
+				queryKey: ["consistency-checks", workspaceId, filePath],
 			});
 		},
 		onError: (error) => {
@@ -106,14 +107,14 @@ export function useChecker(workspaceId: string | null | undefined) {
 export function useRewriter(workspaceId: string | null | undefined) {
 	return useMutation({
 		mutationFn: async ({
-			documentId,
+			filePath,
 			selectedText,
 			instructions,
 			bookContext,
 			currentChapter,
 			promptContent,
 		}: {
-			documentId: string;
+			filePath: string;
 			selectedText: string;
 			instructions: string;
 			bookContext: string;
@@ -122,7 +123,7 @@ export function useRewriter(workspaceId: string | null | undefined) {
 		}) => {
 			const { data } = await axios.post<RewriterResponse>(
 				`/api/workspace/${workspaceId}/ai/rewriter`,
-				{ documentId, selectedText, instructions, bookContext, currentChapter, promptContent }
+				{ filePath, selectedText, instructions, bookContext, currentChapter, promptContent }
 			);
 			return data;
 		},
@@ -135,23 +136,23 @@ export function useSummarize(workspaceId: string | null | undefined) {
 
 	return useMutation({
 		mutationFn: async ({
-			documentId,
+			filePath,
 			content,
 			promptContent,
 		}: {
-			documentId: string;
+			filePath: string;
 			content: string;
 			promptContent: string;
 		}) => {
 			const { data } = await axios.post<SummarizeResponse>(
 				`/api/workspace/${workspaceId}/ai/summarize`,
-				{ documentId, content, promptContent }
+				{ filePath, content, promptContent }
 			);
 			return data;
 		},
-		onSuccess: (_, { documentId }) => {
+		onSuccess: (_, { filePath }) => {
 			queryClient.invalidateQueries({
-				queryKey: ["document-summary", workspaceId, documentId],
+				queryKey: ["document-summary", workspaceId, filePath],
 			});
 			queryClient.invalidateQueries({
 				queryKey: ["book-context", workspaceId],
@@ -163,17 +164,17 @@ export function useSummarize(workspaceId: string | null | undefined) {
 // Help Suggestions
 export function useHelpSuggestions(
 	workspaceId: string | null | undefined,
-	documentId: string | undefined
+	filePath: string | undefined
 ) {
 	return useQuery({
-		queryKey: ["help-suggestions", workspaceId, documentId],
+		queryKey: ["help-suggestions", workspaceId, filePath],
 		queryFn: async () => {
 			const { data } = await axios.get<HelpSuggestion[]>(
-				`/api/workspace/${workspaceId}/documents/${documentId}/help-suggestions`
+				`/api/workspace/${workspaceId}/documents/${encodeURIComponent(filePath!)}/help-suggestions`
 			);
 			return data;
 		},
-		enabled: !!workspaceId && !!documentId,
+		enabled: !!workspaceId && !!filePath,
 	});
 }
 
@@ -182,25 +183,25 @@ export function useUpdateHelpSuggestion(workspaceId: string | null | undefined) 
 
 	return useMutation({
 		mutationFn: async ({
-			documentId,
+			filePath,
 			suggestionId,
 			response,
 			completed,
 		}: {
-			documentId: string;
+			filePath: string;
 			suggestionId: string;
 			response?: string;
 			completed?: boolean;
 		}) => {
 			const { data } = await axios.put<HelpSuggestion>(
-				`/api/workspace/${workspaceId}/documents/${documentId}/help-suggestions/${suggestionId}`,
+				`/api/workspace/${workspaceId}/documents/${encodeURIComponent(filePath)}/help-suggestions/${suggestionId}`,
 				{ response, completed }
 			);
 			return data;
 		},
-		onSuccess: (_, { documentId }) => {
+		onSuccess: (_, { filePath }) => {
 			queryClient.invalidateQueries({
-				queryKey: ["help-suggestions", workspaceId, documentId],
+				queryKey: ["help-suggestions", workspaceId, filePath],
 			});
 		},
 	});
@@ -211,19 +212,19 @@ export function useDeleteHelpSuggestion(workspaceId: string | null | undefined) 
 
 	return useMutation({
 		mutationFn: async ({
-			documentId,
+			filePath,
 			suggestionId,
 		}: {
-			documentId: string;
+			filePath: string;
 			suggestionId: string;
 		}) => {
 			await axios.delete(
-				`/api/workspace/${workspaceId}/documents/${documentId}/help-suggestions/${suggestionId}`
+				`/api/workspace/${workspaceId}/documents/${encodeURIComponent(filePath)}/help-suggestions/${suggestionId}`
 			);
 		},
-		onSuccess: (_, { documentId }) => {
+		onSuccess: (_, { filePath }) => {
 			queryClient.invalidateQueries({
-				queryKey: ["help-suggestions", workspaceId, documentId],
+				queryKey: ["help-suggestions", workspaceId, filePath],
 			});
 		},
 	});
@@ -232,17 +233,17 @@ export function useDeleteHelpSuggestion(workspaceId: string | null | undefined) 
 // Consistency Checks
 export function useConsistencyChecks(
 	workspaceId: string | null | undefined,
-	documentId: string | undefined
+	filePath: string | undefined
 ) {
 	return useQuery({
-		queryKey: ["consistency-checks", workspaceId, documentId],
+		queryKey: ["consistency-checks", workspaceId, filePath],
 		queryFn: async () => {
 			const { data } = await axios.get<ConsistencyCheck[]>(
-				`/api/workspace/${workspaceId}/documents/${documentId}/consistency-checks`
+				`/api/workspace/${workspaceId}/documents/${encodeURIComponent(filePath!)}/consistency-checks`
 			);
 			return data;
 		},
-		enabled: !!workspaceId && !!documentId,
+		enabled: !!workspaceId && !!filePath,
 	});
 }
 
@@ -250,15 +251,15 @@ export function useAcknowledgeConsistencyCheck(workspaceId: string | null | unde
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async ({ documentId, checkId }: { documentId: string; checkId: string }) => {
+		mutationFn: async ({ filePath, checkId }: { filePath: string; checkId: string }) => {
 			await axios.put(
-				`/api/workspace/${workspaceId}/documents/${documentId}/consistency-checks/${checkId}`,
+				`/api/workspace/${workspaceId}/documents/${encodeURIComponent(filePath)}/consistency-checks/${checkId}`,
 				{ acknowledged: true }
 			);
 		},
-		onSuccess: (_, { documentId }) => {
+		onSuccess: (_, { filePath }) => {
 			queryClient.invalidateQueries({
-				queryKey: ["consistency-checks", workspaceId, documentId],
+				queryKey: ["consistency-checks", workspaceId, filePath],
 			});
 		},
 	});
@@ -281,17 +282,17 @@ export function useBookContext(workspaceId: string | null | undefined) {
 // Document Summary
 export function useDocumentSummary(
 	workspaceId: string | null | undefined,
-	documentId: string | undefined
+	filePath: string | undefined
 ) {
 	return useQuery({
-		queryKey: ["document-summary", workspaceId, documentId],
+		queryKey: ["document-summary", workspaceId, filePath],
 		queryFn: async () => {
 			const { data } = await axios.get<DocumentSummary | null>(
-				`/api/workspace/${workspaceId}/documents/${documentId}/summary`
+				`/api/workspace/${workspaceId}/documents/${encodeURIComponent(filePath!)}/summary`
 			);
 			return data;
 		},
-		enabled: !!workspaceId && !!documentId,
+		enabled: !!workspaceId && !!filePath,
 	});
 }
 
@@ -299,16 +300,16 @@ export function useUpsertDocumentSummary(workspaceId: string | null | undefined)
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async ({ documentId, summary }: { documentId: string; summary: string }) => {
+		mutationFn: async ({ filePath, summary }: { filePath: string; summary: string }) => {
 			const { data } = await axios.put<DocumentSummary>(
-				`/api/workspace/${workspaceId}/documents/${documentId}/summary`,
+				`/api/workspace/${workspaceId}/documents/${encodeURIComponent(filePath)}/summary`,
 				{ summary }
 			);
 			return data;
 		},
-		onSuccess: (_, { documentId }) => {
+		onSuccess: (_, { filePath }) => {
 			queryClient.invalidateQueries({
-				queryKey: ["document-summary", workspaceId, documentId],
+				queryKey: ["document-summary", workspaceId, filePath],
 			});
 			queryClient.invalidateQueries({
 				queryKey: ["book-context", workspaceId],

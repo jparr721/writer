@@ -26,17 +26,20 @@ import {
 
 type NodeType = "chapter" | "appendix" | "frontmatter" | "backmatter";
 
+// TODO: Filesystem refactor - documents will use filePath instead of id
 type LibraryDocument = {
 	id: string;
 	title: string;
 	folderId: string | null;
 	updatedAt: string | null;
+	filePath?: string; // Added for filesystem refactor
 };
 
 type DocWithType = {
 	id: string;
 	title: string;
 	nodeType: NodeType;
+	filePath: string; // Added for filesystem refactor
 };
 
 type BookSetupDialogProps = {
@@ -60,6 +63,7 @@ export default function BookSetupDialog({ workspaceId, documents }: BookSetupDia
 			id: doc.id,
 			title: doc.title,
 			nodeType: "chapter" as NodeType,
+			filePath: doc.filePath ?? doc.id, // Use filePath if available, fall back to id
 		}))
 	);
 
@@ -74,6 +78,7 @@ export default function BookSetupDialog({ workspaceId, documents }: BookSetupDia
 						id: doc.id,
 						title: doc.title,
 						nodeType: "chapter" as NodeType,
+						filePath: doc.filePath ?? doc.id, // Use filePath if available, fall back to id
 					}))
 				);
 				setSelectedIds([]);
@@ -130,7 +135,7 @@ export default function BookSetupDialog({ workspaceId, documents }: BookSetupDia
 			// Build files array with positions based on selection order within orderedDocs
 			const selectedDocs = orderedDocs.filter((doc) => selectedIds.includes(doc.id));
 			const files = selectedDocs.map((doc, index) => ({
-				documentId: doc.id,
+				filePath: doc.filePath,
 				nodeType: doc.nodeType,
 				position: index,
 			}));

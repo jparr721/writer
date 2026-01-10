@@ -15,9 +15,10 @@ import { useChecker, useConsistencyChecks } from "@/hooks/use-ai-tools";
 import { usePrompts } from "@/hooks/use-prompts";
 import type { ConsistencyCheck } from "@/lib/db/schema";
 
+// TODO: Filesystem refactor - now uses filePath instead of documentId
 type ConsistencyCheckSectionProps = {
 	workspaceId: string;
-	documentId: string;
+	filePath: string;
 	content: string;
 	onApplyFix: (original: string, fixed: string) => void;
 };
@@ -77,18 +78,18 @@ function ConsistencyCheckItem({
 
 export function ConsistencyCheckSection({
 	workspaceId,
-	documentId,
+	filePath,
 	content,
 	onApplyFix,
 }: ConsistencyCheckSectionProps) {
 	const checker = useChecker(workspaceId);
-	const { data: checks = [] } = useConsistencyChecks(workspaceId, documentId);
+	const { data: checks = [] } = useConsistencyChecks(workspaceId, filePath);
 	const { prompts } = usePrompts();
 
 	const handleRunChecker = async () => {
 		try {
 			await checker.mutateAsync({
-				documentId,
+				filePath,
 				content,
 				promptContent: prompts.checker,
 			});

@@ -29,25 +29,34 @@ export function CreateWorkspaceDialog({
 }: CreateWorkspaceDialogProps) {
 	const createWorkspace = useCreateWorkspace();
 	const [name, setName] = useState("");
+	const [rootPath, setRootPath] = useState("");
 	const [error, setError] = useState<string | null>(null);
 
 	const handleCreate = async () => {
-		const trimmed = name.trim();
-		if (!trimmed) {
+		const trimmedName = name.trim();
+		const trimmedPath = rootPath.trim();
+
+		if (!trimmedName) {
 			setError("Name is required");
 			return;
 		}
 
-		const duplicate = existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase());
+		if (!trimmedPath) {
+			setError("Root path is required");
+			return;
+		}
+
+		const duplicate = existingNames.some((n) => n.toLowerCase() === trimmedName.toLowerCase());
 		if (duplicate) {
 			setError("A workspace with that name already exists");
 			return;
 		}
 
 		try {
-			const workspace = await createWorkspace.mutateAsync({ name: trimmed });
+			const workspace = await createWorkspace.mutateAsync({ name: trimmedName, rootPath: trimmedPath });
 			setError(null);
 			setName("");
+			setRootPath("");
 			onCreated(workspace);
 		} catch (err) {
 			console.error("Failed to create workspace", err);
@@ -60,7 +69,7 @@ export function CreateWorkspaceDialog({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Create workspace</DialogTitle>
-					<DialogDescription>Choose a unique name for this workspace.</DialogDescription>
+					<DialogDescription>Choose a unique name and root directory for this workspace.</DialogDescription>
 				</DialogHeader>
 				<Input
 					autoFocus
@@ -68,6 +77,14 @@ export function CreateWorkspaceDialog({
 					value={name}
 					onChange={(e) => {
 						setName(e.target.value);
+						setError(null);
+					}}
+				/>
+				<Input
+					placeholder="Root path (e.g., /path/to/project)"
+					value={rootPath}
+					onChange={(e) => {
+						setRootPath(e.target.value);
 						setError(null);
 					}}
 				/>

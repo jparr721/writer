@@ -11,7 +11,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId } = await params;
 		const body = summarizeBodySchema.parse(await request.json());
-		const { documentId, content, promptContent } = body;
+		const { filePath, content, promptContent } = body;
 
 		// Call LLM to generate summary
 		const generator = new AiGenerator(0.7);
@@ -23,12 +23,12 @@ export async function POST(request: Request, { params }: RouteParams) {
 			.insert(documentSummaries)
 			.values({
 				workspaceId,
-				documentId,
+				filePath,
 				summary,
 				updatedAt: now,
 			})
 			.onConflictDoUpdate({
-				target: [documentSummaries.workspaceId, documentSummaries.documentId],
+				target: [documentSummaries.workspaceId, documentSummaries.filePath],
 				set: { summary, updatedAt: now },
 			})
 			.returning();

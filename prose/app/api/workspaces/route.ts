@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 			});
 		}
 
-		const [created] = await db.insert(workspaces).values({ name: body.name }).returning();
+		const [created] = await db.insert(workspaces).values({ name: body.name, rootPath: body.rootPath }).returning();
 		return NextResponse.json(created, { status: 201 });
 	} catch (error) {
 		if (error instanceof ZodError) {

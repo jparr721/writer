@@ -26,20 +26,21 @@ import { usePrompts } from "@/hooks/use-prompts";
 import type { HelpSuggestion } from "@/lib/db/schema";
 import { Label } from "../ui/label";
 
+// TODO: Filesystem refactor - now uses filePath instead of documentId
 type HelpSectionProps = {
 	workspaceId: string;
-	documentId: string;
+	filePath: string;
 	content: string;
 };
 
 function HelpInputDialog({
 	workspaceId,
-	documentId,
+	filePath,
 	content,
 	onSuccess,
 }: {
 	workspaceId: string;
-	documentId: string;
+	filePath: string;
 	content: string;
 	onSuccess: () => void;
 }) {
@@ -53,7 +54,7 @@ function HelpInputDialog({
 		const contextText = bookContext.map((c) => `## ${c.title}\n${c.summary}`).join("\n\n");
 
 		await helper.mutateAsync({
-			documentId,
+			filePath,
 			content,
 			bookContext: contextText,
 			specificRequests,
@@ -221,19 +222,19 @@ function HelpResultsDialog({
 function HelpSuggestionItem({
 	suggestion,
 	workspaceId,
-	documentId,
+	filePath,
 	onViewDetails,
 }: {
 	suggestion: HelpSuggestion;
 	workspaceId: string;
-	documentId: string;
+	filePath: string;
 	onViewDetails: () => void;
 }) {
 	const updateSuggestion = useUpdateHelpSuggestion(workspaceId);
 
 	const handleToggleComplete = async () => {
 		await updateSuggestion.mutateAsync({
-			documentId,
+			filePath,
 			suggestionId: suggestion.id,
 			completed: !suggestion.completed,
 		});
@@ -267,8 +268,8 @@ function HelpSuggestionItem({
 	);
 }
 
-export function HelpSection({ workspaceId, documentId, content }: HelpSectionProps) {
-	const { data: suggestions = [] } = useHelpSuggestions(workspaceId, documentId);
+export function HelpSection({ workspaceId, filePath, content }: HelpSectionProps) {
+	const { data: suggestions = [] } = useHelpSuggestions(workspaceId, filePath);
 	const [selectedSuggestion, setSelectedSuggestion] = useState<HelpSuggestion | null>(null);
 
 	const activeSuggestions = suggestions.filter((s) => !s.completed);
@@ -288,7 +289,7 @@ export function HelpSection({ workspaceId, documentId, content }: HelpSectionPro
 				</div>
 				<HelpInputDialog
 					workspaceId={workspaceId}
-					documentId={documentId}
+					filePath={filePath}
 					content={content}
 					onSuccess={() => {}}
 				/>
@@ -301,7 +302,7 @@ export function HelpSection({ workspaceId, documentId, content }: HelpSectionPro
 							key={suggestion.id}
 							suggestion={suggestion}
 							workspaceId={workspaceId}
-							documentId={documentId}
+							filePath={filePath}
 							onViewDetails={() => setSelectedSuggestion(suggestion)}
 						/>
 					))}
@@ -316,7 +317,7 @@ export function HelpSection({ workspaceId, documentId, content }: HelpSectionPro
 										key={suggestion.id}
 										suggestion={suggestion}
 										workspaceId={workspaceId}
-										documentId={documentId}
+										filePath={filePath}
 										onViewDetails={() => setSelectedSuggestion(suggestion)}
 									/>
 								))}

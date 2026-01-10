@@ -1,14 +1,12 @@
-import { desc, eq } from "drizzle-orm";
+// TODO: Filesystem refactor - this endpoint needs to be reimplemented
+// The documents table has been removed from the schema
+
 import { NextResponse } from "next/server";
 import { ZodError, z } from "zod";
 import {
 	createDocumentBodySchema,
-	type DocumentListResponse,
-	type DocumentResponse,
 	type ErrorResponse,
 } from "@/app/api/schemas";
-import { db } from "@/lib/db";
-import { documents } from "@/lib/db/schema";
 
 const workspaceParamsSchema = z.object({
 	workspaceId: z.uuid(),
@@ -19,15 +17,13 @@ export async function GET(
 	{ params }: { params: Promise<{ workspaceId: string }> }
 ) {
 	try {
-		const { workspaceId } = workspaceParamsSchema.parse(await params);
+		workspaceParamsSchema.parse(await params);
 
-		const allDocuments = await db
-			.select()
-			.from(documents)
-			.where(eq(documents.workspaceId, workspaceId))
-			.orderBy(desc(documents.updatedAt));
-
-		return NextResponse.json<DocumentListResponse>(allDocuments);
+		// TODO: Filesystem refactor - implement filesystem-based document listing
+		return NextResponse.json(
+			{ error: "Not implemented - filesystem refactor pending" } satisfies ErrorResponse,
+			{ status: 501 }
+		);
 	} catch (error) {
 		console.error("Failed to fetch documents:", error);
 		return NextResponse.json({ error: "Failed to fetch documents" } satisfies ErrorResponse, {
@@ -41,19 +37,14 @@ export async function POST(
 	{ params }: { params: Promise<{ workspaceId: string }> }
 ) {
 	try {
-		const { workspaceId } = workspaceParamsSchema.parse(await params);
-		const body = createDocumentBodySchema.parse(await request.json());
+		workspaceParamsSchema.parse(await params);
+		createDocumentBodySchema.parse(await request.json());
 
-		const [newDocument] = await db
-			.insert(documents)
-			.values({
-				workspaceId,
-				...(body.title !== undefined && { title: body.title }),
-				...(body.content !== undefined && { content: body.content }),
-			})
-			.returning();
-
-		return NextResponse.json<DocumentResponse>(newDocument, { status: 201 });
+		// TODO: Filesystem refactor - implement filesystem-based document creation
+		return NextResponse.json(
+			{ error: "Not implemented - filesystem refactor pending" } satisfies ErrorResponse,
+			{ status: 501 }
+		);
 	} catch (error) {
 		if (error instanceof ZodError) {
 			return NextResponse.json({ error: "Invalid request body" } satisfies ErrorResponse, {

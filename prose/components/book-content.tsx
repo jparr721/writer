@@ -76,12 +76,12 @@ export default function BookContent({ workspaceId }: BookContentProps) {
 		if (!book?.files || !library) return;
 
 		const docMap = new Map(library.documents.map((d) => [d.id, d.title]));
-		const summaryMap = new Map(bookContext?.map((c) => [c.documentId, c.summary]) ?? []);
+		const summaryMap = new Map(bookContext?.map((c) => [c.filePath, c.summary]) ?? []);
 
 		const enriched = book.files.map((f) => ({
 			...f,
-			title: docMap.get(f.documentId) || "Unknown",
-			summary: summaryMap.get(f.documentId) ?? null,
+			title: docMap.get(f.filePath) || f.filePath.split("/").pop() || "Unknown",
+			summary: summaryMap.get(f.filePath) ?? null,
 		}));
 
 		setBookFiles(enriched);
@@ -104,7 +104,7 @@ export default function BookContent({ workspaceId }: BookContentProps) {
 		try {
 			const selectedFiles = bookFiles.filter((f) => selectedIds.includes(f.id));
 			const files = selectedFiles.map((f, index) => ({
-				documentId: f.documentId,
+				filePath: f.filePath,
 				nodeType: f.nodeType,
 				position: index,
 			}));
@@ -136,7 +136,7 @@ export default function BookContent({ workspaceId }: BookContentProps) {
 		setIsSavingSummary(true);
 		try {
 			await upsertSummary.mutateAsync({
-				documentId: editingFile.documentId,
+				filePath: editingFile.filePath,
 				summary: summaryDraft,
 			});
 
@@ -170,13 +170,14 @@ export default function BookContent({ workspaceId }: BookContentProps) {
 				const file = docsToSummarize[i];
 
 				// Fetch document content
+				// TODO: Filesystem refactor - this endpoint is stubbed
 				const { data: doc } = await axios.get(
-					`/api/workspace/${workspaceId}/documents/${file.documentId}`
+					`/api/workspace/${workspaceId}/documents/${encodeURIComponent(file.filePath)}`
 				);
 
 				// Generate summary
 				const result = await summarize.mutateAsync({
-					documentId: file.documentId,
+					filePath: file.filePath,
 					content: doc.content ?? "",
 					promptContent: prompts.summarizer,
 				});
@@ -184,7 +185,7 @@ export default function BookContent({ workspaceId }: BookContentProps) {
 				// Update local state immediately
 				setBookFiles((prev) =>
 					prev.map((f) =>
-						f.documentId === file.documentId ? { ...f, summary: result.summary } : f
+						f.filePath === file.filePath ? { ...f, summary: result.summary } : f
 					)
 				);
 			}

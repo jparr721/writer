@@ -31,7 +31,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId } = await params;
 		const body = checkerBodySchema.parse(await request.json());
-		const { documentId, content, promptContent } = body;
+		const { filePath, content, promptContent } = body;
 
 		// Ensure we have a draft to attach checks to
 		const now = new Date();
@@ -39,12 +39,12 @@ export async function POST(request: Request, { params }: RouteParams) {
 			.insert(documentDrafts)
 			.values({
 				workspaceId,
-				documentId,
+				filePath,
 				content,
 				updatedAt: now,
 			})
 			.onConflictDoUpdate({
-				target: [documentDrafts.workspaceId, documentDrafts.documentId],
+				target: [documentDrafts.workspaceId, documentDrafts.filePath],
 				set: { content, updatedAt: now },
 			})
 			.returning();
@@ -61,7 +61,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 			.where(
 				and(
 					eq(consistencyChecks.workspaceId, workspaceId),
-					eq(consistencyChecks.documentId, documentId)
+					eq(consistencyChecks.filePath, filePath)
 				)
 			);
 
@@ -70,7 +70,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 			await db.insert(consistencyChecks).values(
 				checks.map((check) => ({
 					workspaceId,
-					documentId,
+					filePath,
 					draftId: draft.id,
 					line: check.line,
 					original: check.original,

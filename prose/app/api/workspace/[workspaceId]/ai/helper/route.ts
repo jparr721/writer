@@ -11,7 +11,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 	try {
 		const { workspaceId } = await params;
 		const body = helperBodySchema.parse(await request.json());
-		const { documentId, content, bookContext, specificRequests, promptContent } = body;
+		const { filePath, content, bookContext, specificRequests, promptContent } = body;
 
 		// Replace template variables in prompt
 		const processedPrompt = promptContent
@@ -31,7 +31,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 			.insert(helpSuggestions)
 			.values({
 				workspaceId,
-				documentId,
+				filePath,
 				prompt: specificRequests ?? "",
 				response: responseText,
 			})

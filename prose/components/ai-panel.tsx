@@ -1,3 +1,4 @@
+// TODO: Filesystem refactor - now uses filePath instead of documentId
 "use client";
 
 import { useLocalStorage } from "usehooks-ts";
@@ -8,7 +9,7 @@ import { HelpSection } from "./ai/help-section";
 
 type AIPanelProps = {
 	workspaceId: string;
-	documentId: string;
+	filePath: string;
 	content: string;
 	hasDraftChanges: boolean;
 	onContentChange: (content: string) => void;
@@ -17,7 +18,7 @@ type AIPanelProps = {
 
 export default function AIPanel({
 	workspaceId,
-	documentId,
+	filePath,
 	content,
 	hasDraftChanges,
 	onContentChange,
@@ -42,7 +43,7 @@ export default function AIPanel({
 				<TabsContent value="editor" className="flex-1 min-h-0">
 					<EditorPassSection
 						workspaceId={workspaceId}
-						documentId={documentId}
+						filePath={filePath}
 						content={content}
 						hasDraftChanges={hasDraftChanges}
 						onContentChange={onContentChange}
@@ -51,13 +52,13 @@ export default function AIPanel({
 				</TabsContent>
 
 				<TabsContent value="help" className="flex-1 min-h-0 flex flex-col">
-					<HelpSection workspaceId={workspaceId} documentId={documentId} content={content} />
+					<HelpSection workspaceId={workspaceId} filePath={filePath} content={content} />
 				</TabsContent>
 
 				<TabsContent value="checker" className="flex-1 min-h-0 flex flex-col">
 					<ConsistencyCheckSection
 						workspaceId={workspaceId}
-						documentId={documentId}
+						filePath={filePath}
 						content={content}
 						onApplyFix={handleApplyFix}
 					/>

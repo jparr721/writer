@@ -96,6 +96,7 @@ export default function DocumentPage() {
 
 	return (
 		<div className="flex flex-1 flex-col min-h-0 overflow-hidden">
+			{/* TODO: Filesystem refactor - filePath should come from document object, using documentId as filePath for now */}
 			<Editor
 				title={document.title}
 				value={content}
@@ -109,7 +110,7 @@ export default function DocumentPage() {
 				isCompiling={compileMutation.isPending}
 				compileError={compileMutation.error}
 				workspaceId={workspaceId}
-				documentId={documentId}
+				filePath={documentId}
 			/>
 		</div>
 	);

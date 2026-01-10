@@ -1,4 +1,20 @@
-import type { Document, Folder } from "@/lib/db/schema";
+// TODO: Filesystem refactor - Document and Folder types are now filesystem-based
+// These are temporary stub types for API compatibility
+
+export type Folder = {
+	id: string;
+	name: string;
+	parentId: string | null;
+	workspaceId: string;
+};
+
+export type Document = {
+	id: string;
+	title: string;
+	content: string;
+	folderId: string | null;
+	workspaceId: string;
+};
 
 export type FolderWithPath = Folder & { path: string };
 export type DocumentWithPath = Document & { path: string };
