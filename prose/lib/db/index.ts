@@ -1,12 +1,15 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client";
+import { mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import * as schema from "./schema";
 
-const connectionString = process.env.DATABASE_URL;
+const dbDir = join(homedir(), ".prose");
+mkdirSync(dbDir, { recursive: true });
 
-if (!connectionString) {
-	throw new Error("DATABASE_URL environment variable is not set");
-}
+const client = createClient({
+	url: `file:${join(dbDir, "prose.db")}`,
+});
 
-const client = postgres(connectionString);
 export const db = drizzle(client, { schema });
