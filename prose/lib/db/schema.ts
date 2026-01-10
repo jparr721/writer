@@ -1,206 +1,145 @@
-import {
-	boolean,
-	foreignKey,
-	index,
-	integer,
-	pgEnum,
-	pgTable,
-	text,
-	timestamp,
-	uniqueIndex,
-	uuid,
-	varchar,
-} from "drizzle-orm/pg-core";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-export const workspaces = pgTable("workspaces", {
-	id: uuid("id").primaryKey().defaultRandom(),
-	name: varchar("name", { length: 255 }).notNull().unique(),
-	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+export const workspaces = sqliteTable("workspaces", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	name: text("name").notNull().unique(),
+	rootPath: text("root_path").notNull().unique(),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer("updated_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
 });
 
-export const folders = pgTable(
-	"folders",
-	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		name: varchar("name", { length: 255 }).notNull(),
-		workspaceId: uuid("workspace_id")
-			.notNull()
-			.references(() => workspaces.id, { onDelete: "cascade" }),
-		parentId: uuid("parent_id"),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-	},
-	(table) => [
-		foreignKey({
-			columns: [table.parentId],
-			foreignColumns: [table.id],
-			name: "folders_parent_id_folders_id_fk",
-		}).onDelete("cascade"),
-		index("idx_folders_workspace_parent").on(table.workspaceId, table.parentId),
-		uniqueIndex("idx_folders_workspace_parent_name").on(
-			table.workspaceId,
-			table.parentId,
-			table.name
-		),
-	]
-);
-
-export const documents = pgTable(
-	"documents",
-	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		title: varchar("title", { length: 255 }).notNull().default("Untitled"),
-		content: text("content").notNull().default(""),
-		workspaceId: uuid("workspace_id")
-			.notNull()
-			.references(() => workspaces.id, { onDelete: "cascade" }),
-		folderId: uuid("folder_id").references(() => folders.id, { onDelete: "cascade" }),
-		extension: varchar("extension", { length: 32 }),
-		originalModifiedAt: timestamp("original_modified_at", { withTimezone: true }),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-	},
-	(table) => [
-		index("idx_documents_workspace_updated_at").on(table.workspaceId, table.updatedAt.desc()),
-		index("idx_documents_workspace_folder_id").on(table.workspaceId, table.folderId),
-	]
-);
-
-export const documentDrafts = pgTable(
+export const documentDrafts = sqliteTable(
 	"document_drafts",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		workspaceId: uuid("workspace_id")
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		workspaceId: text("workspace_id")
 			.notNull()
 			.references(() => workspaces.id, { onDelete: "cascade" }),
-		documentId: uuid("document_id")
-			.notNull()
-			.references(() => documents.id, { onDelete: "cascade" }),
+		filePath: text("file_path").notNull(),
 		content: text("content").notNull().default(""),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+		createdAt: integer("created_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer("updated_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
 	},
-	(table) => [
-		uniqueIndex("idx_document_drafts_workspace_document").on(table.workspaceId, table.documentId),
-	]
+	(table) => [uniqueIndex("idx_document_drafts_workspace_file").on(table.workspaceId, table.filePath)]
 );
 
-// Document Summaries - AI-generated chapter summaries for book context
-export const documentSummaries = pgTable(
+export const documentSummaries = sqliteTable(
 	"document_summaries",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		workspaceId: uuid("workspace_id")
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		workspaceId: text("workspace_id")
 			.notNull()
 			.references(() => workspaces.id, { onDelete: "cascade" }),
-		documentId: uuid("document_id")
-			.notNull()
-			.references(() => documents.id, { onDelete: "cascade" }),
+		filePath: text("file_path").notNull(),
 		summary: text("summary").notNull(),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+		createdAt: integer("created_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer("updated_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
 	},
-	(table) => [
-		uniqueIndex("idx_document_summaries_workspace_document").on(
-			table.workspaceId,
-			table.documentId
-		),
-	]
+	(table) => [uniqueIndex("idx_document_summaries_workspace_file").on(table.workspaceId, table.filePath)]
 );
 
-// Help Suggestions - stores helper AI responses for user reference
-export const helpSuggestions = pgTable(
+export const helpSuggestions = sqliteTable(
 	"help_suggestions",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		workspaceId: uuid("workspace_id")
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		workspaceId: text("workspace_id")
 			.notNull()
 			.references(() => workspaces.id, { onDelete: "cascade" }),
-		documentId: uuid("document_id")
-			.notNull()
-			.references(() => documents.id, { onDelete: "cascade" }),
+		filePath: text("file_path").notNull(),
 		prompt: text("prompt").notNull(),
 		response: text("response").notNull(),
-		completed: boolean("completed").notNull().default(false),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+		completed: integer("completed", { mode: "boolean" }).notNull().default(false),
+		createdAt: integer("created_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer("updated_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
 	},
-	(table) => [
-		index("idx_help_suggestions_workspace_document").on(table.workspaceId, table.documentId),
-	]
+	(table) => [index("idx_help_suggestions_workspace_file").on(table.workspaceId, table.filePath)]
 );
 
-// Consistency check type enum
-export const consistencyCheckTypeEnum = pgEnum("consistency_check_type", [
-	"punctuation",
-	"repetition",
-	"tense",
-	"combined",
-]);
+// Consistency check types stored as text (SQLite has no enums)
+export type ConsistencyCheckType = "punctuation" | "repetition" | "tense" | "combined";
 
-// Book file node type enum
-export const nodeTypeEnum = pgEnum("node_type", [
-	"chapter",
-	"appendix",
-	"frontmatter",
-	"backmatter",
-]);
-
-// Consistency Checks - stores checker AI results tied to drafts
-export const consistencyChecks = pgTable(
+export const consistencyChecks = sqliteTable(
 	"consistency_checks",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		workspaceId: uuid("workspace_id")
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		workspaceId: text("workspace_id")
 			.notNull()
 			.references(() => workspaces.id, { onDelete: "cascade" }),
-		documentId: uuid("document_id")
-			.notNull()
-			.references(() => documents.id, { onDelete: "cascade" }),
-		draftId: uuid("draft_id")
+		filePath: text("file_path").notNull(),
+		draftId: text("draft_id")
 			.notNull()
 			.references(() => documentDrafts.id, { onDelete: "cascade" }),
 		line: integer("line").notNull(),
 		original: text("original").notNull(),
 		fixed: text("fixed").notNull(),
-		type: consistencyCheckTypeEnum("type").notNull(),
-		acknowledged: boolean("acknowledged").notNull().default(false),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+		type: text("type").$type<ConsistencyCheckType>().notNull(),
+		acknowledged: integer("acknowledged", { mode: "boolean" }).notNull().default(false),
+		createdAt: integer("created_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
 	},
 	(table) => [index("idx_consistency_checks_draft").on(table.draftId)]
 );
 
-// Book Files - ordered documents that form the book structure
-export const bookFiles = pgTable(
+// Book file node types stored as text
+export type NodeType = "chapter" | "appendix" | "frontmatter" | "backmatter";
+
+export const bookFiles = sqliteTable(
 	"book_files",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		workspaceId: uuid("workspace_id")
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		workspaceId: text("workspace_id")
 			.notNull()
 			.references(() => workspaces.id, { onDelete: "cascade" }),
-		documentId: uuid("document_id")
-			.notNull()
-			.references(() => documents.id, { onDelete: "cascade" }),
-		nodeType: nodeTypeEnum("node_type").notNull(),
+		filePath: text("file_path").notNull(),
+		nodeType: text("node_type").$type<NodeType>().notNull(),
 		position: integer("position").notNull(),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+		createdAt: integer("created_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer("updated_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
 	},
 	(table) => [
-		uniqueIndex("idx_book_files_workspace_document").on(table.workspaceId, table.documentId),
+		uniqueIndex("idx_book_files_workspace_file").on(table.workspaceId, table.filePath),
 		index("idx_book_files_workspace_position").on(table.workspaceId, table.position),
 	]
 );
 
+// Type exports
 export type Workspace = typeof workspaces.$inferSelect;
 export type NewWorkspace = typeof workspaces.$inferInsert;
-export type Document = typeof documents.$inferSelect;
-export type NewDocument = typeof documents.$inferInsert;
 export type DocumentDraft = typeof documentDrafts.$inferSelect;
 export type NewDocumentDraft = typeof documentDrafts.$inferInsert;
-export type Folder = typeof folders.$inferSelect;
-export type NewFolder = typeof folders.$inferInsert;
 export type DocumentSummary = typeof documentSummaries.$inferSelect;
 export type NewDocumentSummary = typeof documentSummaries.$inferInsert;
 export type HelpSuggestion = typeof helpSuggestions.$inferSelect;
