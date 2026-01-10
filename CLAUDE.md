@@ -20,20 +20,20 @@ bun lint             # ESLint
 bun biome:check      # Check formatting and linting
 bun biome:fix        # Auto-fix all issues
 
-# Database (PostgreSQL via Drizzle)
+# Database (SQLite via Drizzle)
 bun db:generate      # Generate migrations from schema changes
 bun db:migrate       # Apply migrations
 bun db:studio        # Open Drizzle Studio GUI
 ```
 
-Start PostgreSQL: `docker compose up -d` from repository root.
+Database stored at `~/.prose/prose.db` (created automatically on first run).
 
 ## Architecture
 
 ### Tech Stack
 - **Frontend**: Next.js 16 (App Router), React 19, TailwindCSS 4
 - **Editor**: CodeMirror with markdown/LaTeX language support
-- **Database**: PostgreSQL + Drizzle ORM
+- **Database**: SQLite + Drizzle ORM
 - **AI**: LangChain with OpenAI/Ollama providers
 - **PDF**: pdflatex compilation for document preview
 
@@ -62,13 +62,13 @@ prose/
 
 ### Data Model
 
-- **Workspaces**: Container for related documents (e.g., a book)
-- **Folders**: Hierarchical organization within workspaces
-- **Documents**: LaTeX content with title, stored in `content` field
-- **DocumentDrafts**: Working copies before commit (one per document)
-- **DocumentSummaries**: AI-generated chapter summaries for book context
-- **HelpSuggestions**: AI responses from developmental editor tool
+- **Workspaces**: Pointer to a folder on disk (rootPath) containing documents
+- **Documents**: LaTeX files on disk (not in database - filesystem refactor pending)
+- **DocumentDrafts**: Working copies before commit, keyed by filePath
+- **DocumentSummaries**: AI-generated chapter summaries, keyed by filePath
+- **HelpSuggestions**: AI responses from developmental editor, keyed by filePath
 - **ConsistencyChecks**: Proofreading issues (punctuation, repetition, tense)
+- **BookFiles**: Ordered list of files that form the book structure
 
 ### AI Tools
 

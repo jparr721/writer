@@ -16,7 +16,7 @@ export type Document = {
 export type DocumentDraft = {
 	id: string;
 	workspaceId: string;
-	documentId: string;
+	filePath: string;
 	content: string;
 	createdAt?: string;
 	updatedAt?: string;
