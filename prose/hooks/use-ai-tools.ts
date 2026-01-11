@@ -211,13 +211,7 @@ export function useDeleteHelpSuggestion(workspaceId: string | null | undefined) 
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async ({
-			filePath,
-			suggestionId,
-		}: {
-			filePath: string;
-			suggestionId: string;
-		}) => {
+		mutationFn: async ({ filePath, suggestionId }: { filePath: string; suggestionId: string }) => {
 			await axios.delete(
 				`/api/workspace/${workspaceId}/documents/${encodeURIComponent(filePath)}/help-suggestions/${suggestionId}`
 			);

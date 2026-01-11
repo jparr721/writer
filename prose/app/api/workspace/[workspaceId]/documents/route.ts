@@ -3,10 +3,7 @@
 
 import { NextResponse } from "next/server";
 import { ZodError, z } from "zod";
-import {
-	createDocumentBodySchema,
-	type ErrorResponse,
-} from "@/app/api/schemas";
+import { createDocumentBodySchema, type ErrorResponse } from "@/app/api/schemas";
 
 const workspaceParamsSchema = z.object({
 	workspaceId: z.uuid(),

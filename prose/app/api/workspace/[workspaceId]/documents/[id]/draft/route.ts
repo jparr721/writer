@@ -28,7 +28,9 @@ export async function GET(_request: Request, { params }: RouteParams) {
 		const [draft] = await db
 			.select()
 			.from(documentDrafts)
-			.where(and(eq(documentDrafts.workspaceId, workspaceId), eq(documentDrafts.filePath, filePath)));
+			.where(
+				and(eq(documentDrafts.workspaceId, workspaceId), eq(documentDrafts.filePath, filePath))
+			);
 
 		return NextResponse.json<DocumentDraftResponse | null>(draft ?? null);
 	} catch (error) {
@@ -89,7 +91,9 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
 		await db
 			.delete(documentDrafts)
-			.where(and(eq(documentDrafts.workspaceId, workspaceId), eq(documentDrafts.filePath, filePath)));
+			.where(
+				and(eq(documentDrafts.workspaceId, workspaceId), eq(documentDrafts.filePath, filePath))
+			);
 
 		return NextResponse.json<SuccessResponse>({ success: true });
 	} catch (error) {

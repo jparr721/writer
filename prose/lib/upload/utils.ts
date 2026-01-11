@@ -1,4 +1,4 @@
-import type { PendingFile, FileMetadata } from "./types";
+import type { FileMetadata, PendingFile } from "./types";
 
 export function getRelativePath(file: File): string {
 	const maybeWithPath = file as File & { webkitRelativePath?: string };

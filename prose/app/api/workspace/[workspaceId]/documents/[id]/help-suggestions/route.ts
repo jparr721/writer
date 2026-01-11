@@ -4,10 +4,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { ZodError, z } from "zod";
-import {
-	type ErrorResponse,
-	type HelpSuggestionListResponse,
-} from "@/app/api/schemas";
+import type { ErrorResponse, HelpSuggestionListResponse } from "@/app/api/schemas";
 import { db } from "@/lib/db";
 import { helpSuggestions } from "@/lib/db/schema";
 
@@ -26,7 +23,9 @@ export async function GET(_request: Request, { params }: RouteParams) {
 		const suggestions = await db
 			.select()
 			.from(helpSuggestions)
-			.where(and(eq(helpSuggestions.workspaceId, workspaceId), eq(helpSuggestions.filePath, filePath)))
+			.where(
+				and(eq(helpSuggestions.workspaceId, workspaceId), eq(helpSuggestions.filePath, filePath))
+			)
 			.orderBy(desc(helpSuggestions.createdAt));
 
 		return NextResponse.json<HelpSuggestionListResponse>(suggestions);

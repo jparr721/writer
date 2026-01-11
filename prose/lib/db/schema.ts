@@ -32,7 +32,9 @@ export const documentDrafts = sqliteTable(
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},
-	(table) => [uniqueIndex("idx_document_drafts_workspace_file").on(table.workspaceId, table.filePath)]
+	(table) => [
+		uniqueIndex("idx_document_drafts_workspace_file").on(table.workspaceId, table.filePath),
+	]
 );
 
 export const documentSummaries = sqliteTable(
@@ -53,7 +55,9 @@ export const documentSummaries = sqliteTable(
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},
-	(table) => [uniqueIndex("idx_document_summaries_workspace_file").on(table.workspaceId, table.filePath)]
+	(table) => [
+		uniqueIndex("idx_document_summaries_workspace_file").on(table.workspaceId, table.filePath),
+	]
 );
 
 export const helpSuggestions = sqliteTable(

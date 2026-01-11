@@ -131,7 +131,9 @@ export default function WorkspaceSelector() {
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Create workspace</DialogTitle>
-						<DialogDescription>Choose a unique name and root directory for this workspace.</DialogDescription>
+						<DialogDescription>
+							Choose a unique name and root directory for this workspace.
+						</DialogDescription>
 					</DialogHeader>
 					<Input
 						autoFocus

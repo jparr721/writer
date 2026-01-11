@@ -28,7 +28,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
 			.select()
 			.from(documentSummaries)
 			.where(
-				and(eq(documentSummaries.workspaceId, workspaceId), eq(documentSummaries.filePath, filePath))
+				and(
+					eq(documentSummaries.workspaceId, workspaceId),
+					eq(documentSummaries.filePath, filePath)
+				)
 			);
 
 		return NextResponse.json<DocumentSummaryResponse | null>(summary ?? null);

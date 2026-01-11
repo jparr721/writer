@@ -4,10 +4,10 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { ZodError, z } from "zod";
-import {
-	type ConsistencyCheckListResponse,
-	type ErrorResponse,
-	type SuccessResponse,
+import type {
+	ConsistencyCheckListResponse,
+	ErrorResponse,
+	SuccessResponse,
 } from "@/app/api/schemas";
 import { db } from "@/lib/db";
 import { consistencyChecks } from "@/lib/db/schema";
@@ -28,7 +28,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
 			.select()
 			.from(consistencyChecks)
 			.where(
-				and(eq(consistencyChecks.workspaceId, workspaceId), eq(consistencyChecks.filePath, filePath))
+				and(
+					eq(consistencyChecks.workspaceId, workspaceId),
+					eq(consistencyChecks.filePath, filePath)
+				)
 			);
 
 		return NextResponse.json<ConsistencyCheckListResponse>(checks);
@@ -55,7 +58,10 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 		await db
 			.delete(consistencyChecks)
 			.where(
-				and(eq(consistencyChecks.workspaceId, workspaceId), eq(consistencyChecks.filePath, filePath))
+				and(
+					eq(consistencyChecks.workspaceId, workspaceId),
+					eq(consistencyChecks.filePath, filePath)
+				)
 			);
 
 		return NextResponse.json<SuccessResponse>({ success: true });

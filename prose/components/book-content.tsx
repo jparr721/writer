@@ -184,9 +184,7 @@ export default function BookContent({ workspaceId }: BookContentProps) {
 
 				// Update local state immediately
 				setBookFiles((prev) =>
-					prev.map((f) =>
-						f.filePath === file.filePath ? { ...f, summary: result.summary } : f
-					)
+					prev.map((f) => (f.filePath === file.filePath ? { ...f, summary: result.summary } : f))
 				);
 			}
 

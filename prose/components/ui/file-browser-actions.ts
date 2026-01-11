@@ -47,7 +47,7 @@ async function getFolders(dirPath: string): Promise<string[]> {
 	}
 }
 
-export function getPathSegments(path: string): { name: string; path: string }[] {
+export async function getPathSegments(path: string): Promise<{ name: string; path: string }[]> {
 	const home = homedir();
 	const normalizedPath = join(path);
 	const normalizedHome = join(home);
