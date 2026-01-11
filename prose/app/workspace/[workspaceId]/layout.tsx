@@ -11,11 +11,14 @@ import type { DocumentSummary } from "@/hooks/use-documents";
 import { useWorkspaceSettings } from "@/hooks/use-workspace-settings";
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
-	const params = useParams<{ workspaceId: string; documentId?: string }>();
+	const params = useParams<{ workspaceId: string; documentId?: string[] }>();
 	const workspaceId = Array.isArray(params.workspaceId)
 		? params.workspaceId[0]
 		: params.workspaceId;
-	const documentId = Array.isArray(params.documentId) ? params.documentId[0] : params.documentId;
+	// Catch-all route gives an array of path segments - join them back into a file path
+	const documentId = Array.isArray(params.documentId)
+		? params.documentId.join("/")
+		: params.documentId;
 	const router = useRouter();
 	const { setWorkspaceId } = useWorkspaceSettings();
 	const [validating, setValidating] = useState(true);

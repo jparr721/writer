@@ -1,30 +1,61 @@
-// TODO: Filesystem refactor - this endpoint needs to be reimplemented
-// The documents table has been removed from the schema
-
+import { readFile, stat, unlink, writeFile } from "fs/promises";
+import { basename, join } from "path";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { ZodError, z } from "zod";
-import {
-	type DocumentIdParams,
-	type ErrorResponse,
-	updateDocumentBodySchema,
-} from "@/app/api/schemas";
+import { type ErrorResponse, updateDocumentBodySchema } from "@/app/api/schemas";
+import { db } from "@/lib/db";
+import { workspaces } from "@/lib/db/schema";
 
 const paramsSchema = z.object({
 	workspaceId: z.uuid(),
-	id: z.uuid(),
+	id: z.string(), // URL-encoded file path
 });
 
-type RouteParams = { params: Promise<DocumentIdParams & { workspaceId: string }> };
+type RouteParams = { params: Promise<{ workspaceId: string; id: string }> };
+
+type DocumentResponse = {
+	id: string;
+	title: string;
+	content: string;
+};
 
 export async function GET(_request: Request, { params }: RouteParams) {
 	try {
-		paramsSchema.parse(await params);
+		const { workspaceId, id } = paramsSchema.parse(await params);
+		const filePath = decodeURIComponent(id);
 
-		// TODO: Filesystem refactor - implement filesystem-based document fetch
-		return NextResponse.json(
-			{ error: "Not implemented - filesystem refactor pending" } satisfies ErrorResponse,
-			{ status: 501 }
-		);
+		// Fetch workspace to get rootPath
+		const [workspace] = await db
+			.select()
+			.from(workspaces)
+			.where(eq(workspaces.id, workspaceId))
+			.limit(1);
+
+		if (!workspace) {
+			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
+				status: 404,
+			});
+		}
+
+		const fullPath = join(workspace.rootPath, filePath);
+
+		// Read file content
+		try {
+			const content = await readFile(fullPath, "utf-8");
+			const title = basename(filePath, ".tex");
+
+			return NextResponse.json<DocumentResponse>({
+				id: filePath,
+				title,
+				content,
+			});
+		} catch (fsError) {
+			console.error("Failed to read document file:", fsError);
+			return NextResponse.json({ error: "Document not found" } satisfies ErrorResponse, {
+				status: 404,
+			});
+		}
 	} catch (error) {
 		if (error instanceof ZodError) {
 			return NextResponse.json({ error: "Invalid document id" } satisfies ErrorResponse, {
@@ -41,14 +72,48 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
 export async function PUT(request: Request, { params }: RouteParams) {
 	try {
-		paramsSchema.parse(await params);
-		updateDocumentBodySchema.parse(await request.json());
+		const { workspaceId, id } = paramsSchema.parse(await params);
+		const filePath = decodeURIComponent(id);
+		const body = updateDocumentBodySchema.parse(await request.json());
 
-		// TODO: Filesystem refactor - implement filesystem-based document update
-		return NextResponse.json(
-			{ error: "Not implemented - filesystem refactor pending" } satisfies ErrorResponse,
-			{ status: 501 }
-		);
+		// Fetch workspace to get rootPath
+		const [workspace] = await db
+			.select()
+			.from(workspaces)
+			.where(eq(workspaces.id, workspaceId))
+			.limit(1);
+
+		if (!workspace) {
+			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
+				status: 404,
+			});
+		}
+
+		const fullPath = join(workspace.rootPath, filePath);
+
+		// Check if file exists
+		try {
+			await stat(fullPath);
+		} catch {
+			return NextResponse.json({ error: "Document not found" } satisfies ErrorResponse, {
+				status: 404,
+			});
+		}
+
+		// Write updated content if provided
+		if (body.content !== undefined) {
+			await writeFile(fullPath, body.content, "utf-8");
+		}
+
+		// Read back the file to return updated document
+		const content = await readFile(fullPath, "utf-8");
+		const title = body.title ?? basename(filePath, ".tex");
+
+		return NextResponse.json<DocumentResponse>({
+			id: filePath,
+			title,
+			content,
+		});
 	} catch (error) {
 		if (error instanceof ZodError) {
 			return NextResponse.json({ error: "Invalid request" } satisfies ErrorResponse, {
@@ -65,13 +130,34 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
 export async function DELETE(_request: Request, { params }: RouteParams) {
 	try {
-		paramsSchema.parse(await params);
+		const { workspaceId, id } = paramsSchema.parse(await params);
+		const filePath = decodeURIComponent(id);
 
-		// TODO: Filesystem refactor - implement filesystem-based document delete
-		return NextResponse.json(
-			{ error: "Not implemented - filesystem refactor pending" } satisfies ErrorResponse,
-			{ status: 501 }
-		);
+		// Fetch workspace to get rootPath
+		const [workspace] = await db
+			.select()
+			.from(workspaces)
+			.where(eq(workspaces.id, workspaceId))
+			.limit(1);
+
+		if (!workspace) {
+			return NextResponse.json({ error: "Workspace not found" } satisfies ErrorResponse, {
+				status: 404,
+			});
+		}
+
+		const fullPath = join(workspace.rootPath, filePath);
+
+		// Delete the file
+		try {
+			await unlink(fullPath);
+			return NextResponse.json({ success: true });
+		} catch (fsError) {
+			console.error("Failed to delete document file:", fsError);
+			return NextResponse.json({ error: "Document not found" } satisfies ErrorResponse, {
+				status: 404,
+			});
+		}
 	} catch (error) {
 		if (error instanceof ZodError) {
 			return NextResponse.json({ error: "Invalid document id" } satisfies ErrorResponse, {

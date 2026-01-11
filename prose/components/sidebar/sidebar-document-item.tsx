@@ -42,9 +42,10 @@ export function SidebarDocumentItem({
 		async (newTitle: string) => {
 			setIsRenaming(true);
 			try {
-				await axios.put(`/api/workspace/${workspaceId}/documents/${doc.id}`, {
-					title: newTitle,
-				});
+				await axios.put(
+					`/api/workspace/${workspaceId}/documents/${encodeURIComponent(doc.id)}`,
+					{ title: newTitle }
+				);
 				invalidateLibrary();
 			} finally {
 				setIsRenaming(false);
@@ -56,7 +57,9 @@ export function SidebarDocumentItem({
 	const handleDelete = useCallback(async () => {
 		setIsDeleting(true);
 		try {
-			await axios.delete(`/api/workspace/${workspaceId}/documents/${doc.id}`);
+			await axios.delete(
+				`/api/workspace/${workspaceId}/documents/${encodeURIComponent(doc.id)}`
+			);
 			invalidateLibrary();
 			setDeleteOpen(false);
 		} catch (error) {

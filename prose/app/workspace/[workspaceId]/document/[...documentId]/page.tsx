@@ -13,11 +13,14 @@ import {
 } from "@/hooks/use-documents";
 
 export default function DocumentPage() {
-	const params = useParams<{ workspaceId: string; documentId: string }>();
+	const params = useParams<{ workspaceId: string; documentId: string[] }>();
 	const workspaceId = Array.isArray(params.workspaceId)
 		? params.workspaceId[0]
 		: params.workspaceId;
-	const documentId = Array.isArray(params.documentId) ? params.documentId[0] : params.documentId;
+	// Catch-all route gives an array of path segments - join them back into a file path
+	const documentId = Array.isArray(params.documentId)
+		? params.documentId.join("/")
+		: params.documentId;
 	const router = useRouter();
 
 	const { data: document, isLoading, error } = useDocument(workspaceId, documentId);
