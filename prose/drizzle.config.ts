@@ -1,12 +1,12 @@
-import { homedir } from "node:os";
-import { join } from "node:path";
 import { defineConfig } from "drizzle-kit";
+
+import { DB_URL } from "./lib/db/path";
 
 export default defineConfig({
 	schema: "./lib/db/schema.ts",
 	out: "./drizzle",
 	dialect: "sqlite",
 	dbCredentials: {
-		url: `file:${join(homedir(), ".prose", "prose.db")}`,
+		url: DB_URL,
 	},
 });
